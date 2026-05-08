@@ -240,7 +240,7 @@ export default function TeachersPage() {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {section.teachers.map((teacher) => (
+                  {section.teachers.map((teacher: any) => (
                     <TeacherCard key={teacher.id} teacher={teacher} />
                   ))}
                 </div>
@@ -265,7 +265,7 @@ export default function TeachersPage() {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {section.teachers.map((teacher) => (
+                  {section.teachers.map((teacher: any) => (
                     <TeacherCard key={teacher.id} teacher={teacher} />
                   ))}
                 </div>
