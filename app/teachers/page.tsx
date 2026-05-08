@@ -2,8 +2,9 @@
 
 import { motion, useScroll, useTransform } from "motion/react";
 import Image from "next/image";
-import { Mail, Phone, Award, BookOpen, Users, Briefcase } from "lucide-react";
-import { useState, useRef } from "react";
+import { Mail, Phone, Award, BookOpen, Users, Briefcase, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { getPublicTeachers, PublicTeacherProfile } from "@/lib/dashboard-data";
 
 // Comprehensive teacher database organized by class and section
 const TEACHERS_DATA = {
@@ -120,6 +121,43 @@ function TeacherCard({ teacher }: { teacher: any }) {
 export default function TeachersPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<"school" | "academy">("school");
+  const [teachersData, setTeachersData] = useState<{ school: any[], academy: any[] }>({ school: [], academy: [] });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await getPublicTeachers();
+        
+        if (data.length === 0) {
+          // Fallback to static if empty
+          setTeachersData(TEACHERS_DATA);
+        } else {
+          const schoolTeachers = data.filter(t => t.category === "school");
+          const academyTeachers = data.filter(t => t.category === "academy");
+          
+          const groupBySection = (arr: PublicTeacherProfile[]) => {
+            const groups: Record<string, PublicTeacherProfile[]> = {};
+            arr.forEach(t => {
+              if (!groups[t.section]) groups[t.section] = [];
+              groups[t.section].push(t);
+            });
+            return Object.keys(groups).map(key => ({ class: key, section: key, teachers: groups[key] }));
+          };
+          
+          setTeachersData({
+            school: groupBySection(schoolTeachers),
+            academy: groupBySection(academyTeachers)
+          });
+        }
+      } catch (err) {
+        setTeachersData(TEACHERS_DATA);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -177,10 +215,15 @@ export default function TeachersPage() {
         </div>
 
         {/* Teachers List by Section */}
-        <div className="space-y-16">
-          {activeTab === "school" ? (
-            // School Teachers
-            TEACHERS_DATA.school.map((section, idx) => (
+        {loading ? (
+          <div className="flex justify-center items-center py-32">
+            <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
+          </div>
+        ) : (
+          <div className="space-y-16">
+            {activeTab === "school" ? (
+              // School Teachers
+              teachersData.school.map((section, idx) => (
               <motion.div
                 key={section.class}
                 initial={{ opacity: 0, y: 20 }}
@@ -205,7 +248,7 @@ export default function TeachersPage() {
             ))
           ) : (
             // Academy Teachers
-            TEACHERS_DATA.academy.map((section, idx) => (
+            teachersData.academy.map((section, idx) => (
               <motion.div
                 key={section.section}
                 initial={{ opacity: 0, y: 20 }}
@@ -230,6 +273,7 @@ export default function TeachersPage() {
             ))
           )}
         </div>
+        )}
 
         {/* Stats Section */}
         <motion.div

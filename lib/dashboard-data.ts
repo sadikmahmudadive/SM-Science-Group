@@ -27,6 +27,20 @@ export interface Submission {
   submittedAt: any;
 }
 
+export interface PublicTeacherProfile {
+  id: string;
+  name: string;
+  subject: string;
+  role: string;
+  experience: string;
+  phone: string;
+  email: string;
+  image: string;
+  specialization: string;
+  category: 'school' | 'academy';
+  section: string; // e.g., "Class 1-2" or "Mathematics Coaching"
+}
+
 export async function getTeacherClasses(teacherId: string): Promise<ClassData[]> {
   const db = getDb();
   if (!db) return [];
@@ -112,5 +126,38 @@ export async function deleteClass(id: string): Promise<void> {
   const db = getDb();
   if (!db) throw new Error('Firebase not configured');
   await deleteDoc(doc(db, 'classes', id));
+}
+
+// --- PUBLIC STAFF PROFILES ---
+
+export async function getPublicTeachers(): Promise<PublicTeacherProfile[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const snap = await getDocs(collection(db, 'publicTeachers'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as PublicTeacherProfile));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+export async function createPublicTeacher(data: Omit<PublicTeacherProfile, 'id'>): Promise<string> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  const docRef = await addDoc(collection(db, 'publicTeachers'), data);
+  return docRef.id;
+}
+
+export async function updatePublicTeacher(id: string, data: Partial<PublicTeacherProfile>): Promise<void> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  await updateDoc(doc(db, 'publicTeachers', id), data);
+}
+
+export async function deletePublicTeacher(id: string): Promise<void> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  await deleteDoc(doc(db, 'publicTeachers', id));
 }
 

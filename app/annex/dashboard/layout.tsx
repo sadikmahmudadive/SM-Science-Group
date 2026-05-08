@@ -95,6 +95,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       { label: "Overview", icon: Layout, href: "/annex/dashboard" },
       { label: "Manage Classes", icon: BookOpen, href: "/annex/dashboard/classes" },
       { label: "Manage Users", icon: Shield, href: "/annex/dashboard/users" },
+      { label: "Public Staff Profiles", icon: Users, href: "/annex/dashboard/staff" },
       { label: "Announcements", icon: Megaphone, href: "/annex/dashboard/announcements" },
       { label: "Global Settings", icon: Settings, href: "/annex/dashboard/settings" },
     ],

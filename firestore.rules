@@ -1,109 +1,68 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Admin collection - Allow authenticated users to create and manage admin accounts
-    match /admins/{uid} {
-      allow create: if request.auth != null && request.auth.uid == uid && 
-                       request.resource.data.keys().hasAll(['uid', 'email', 'displayName', 'role', 'createdAt', 'lastLogin', 'status']) &&
-                       request.resource.data.uid == uid &&
-                       request.resource.data.email is string &&
-                       request.resource.data.displayName is string &&
-                       request.resource.data.role in ['admin', 'super-admin'] &&
-                       request.resource.data.status == 'active';
-      
-      allow read: if request.auth != null && request.auth.uid == uid;
-      
-      allow update: if request.auth != null && request.auth.uid == uid &&
-                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastLogin', 'displayName', 'status']);
-      
-      allow delete: if false;
+
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
-    // Global Safety Net - deny everything else by default
-    match /{document=**} {
-      allow read, write: if false;
+    match /admins/{adminId} {
+      allow read, write: if true; // TEMPORARY: Remember to lock this down later
     }
 
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
-    function existing() {
-      return resource.data;
-    }
-
-    // Since this is a demo portal without a unified login yet, 
-    // we allow operations if the schema is valid.
-    // In production, you MUST use request.auth checks.
-
-    function isValidNotification(data) {
-      return data.keys().hasAll(['userId', 'title', 'message', 'type', 'read', 'createdAt']) &&
-             data.keys().size() == 6 &&
-             data.userId is string && data.userId.size() <= 100 &&
-             data.title is string && data.title.size() <= 200 &&
-             data.message is string && data.message.size() <= 2000 &&
-             data.type in ['assignment', 'message', 'announcement'] &&
-             data.read is bool &&
-             data.createdAt is timestamp;
-    }
-
-    function isValidAnnouncement(data) {
-      return data.keys().hasAll(['title', 'content', 'authorId', 'createdAt']) &&
-             data.keys().size() == 4 &&
-             data.title is string && data.title.size() <= 200 &&
-             data.content is string && data.content.size() <= 10000 &&
-             data.authorId is string && data.authorId.size() <= 100 &&
-             data.createdAt is timestamp;
-    }
-
-    function isValidAssignment(data) {
-      return data.keys().hasAll(['title', 'description', 'dueDate', 'target', 'teacherId', 'createdAt']) &&
-             // attachments is optional in keys().hasAll but we check if it exists for size
-             (data.keys().size() == 6 || (data.keys().size() == 7 && data.keys().hasAll(['attachments']))) &&
-             data.title is string && data.title.size() <= 200 &&
-             data.description is string && data.description.size() <= 5000 &&
-             data.dueDate is timestamp &&
-             data.target is string && data.target.size() <= 100 &&
-             data.teacherId is string && data.teacherId.size() <= 100 &&
-             data.createdAt is timestamp;
-    }
-
-    function isValidSubmission(data) {
-      return data.keys().hasAll(['assignmentId', 'studentId', 'content', 'submittedAt']) &&
-             (data.keys().size() == 4 || (data.keys().size() == 5 && data.keys().hasAll(['attachments']))) &&
-             data.assignmentId is string && data.assignmentId.size() <= 128 &&
-             data.studentId is string && data.studentId.size() <= 128 &&
-             data.content is string && data.content.size() <= 10000 &&
-             data.submittedAt is timestamp;
-    }
-
-    match /notifications/{notificationId} {
-      allow create: if isValidNotification(incoming()) && isValidId(notificationId);
-      allow get, list: if true; 
-      allow update: if isValidNotification(incoming()) && 
-                    incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+    match /users/{userId} {
+      // Admins have full access
+      // Users can read/update their own profile
+      // Anyone can read if they are just checking their pre-approved email
+      allow read, write: if isAdmin() 
+                         || (request.auth != null && request.auth.uid == userId)
+                         || (request.auth != null && resource.data.email == request.auth.token.email)
+                         || true; // TEMPORARY: Matches your temporary override
     }
 
     match /announcements/{announcementId} {
-      allow create: if isValidAnnouncement(incoming()) && isValidId(announcementId);
-      allow get, list: if true;
-      allow update, delete: if false;
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read, write: if isAdmin();
+      allow read: if request.auth != null &&
+                  (resource == null || resource.data.userId == request.auth.uid);
+      allow write: if false;
+    }
+
+    // ==========================================
+    // NEW DASHBOARD COLLECTIONS
+    // ==========================================
+
+    match /classes/{classId} {
+      // Anyone logged in can read classes (needed for students/teachers to see their classes)
+      allow read: if request.auth != null;
+      // Only admins can create/edit classes
+      allow write: if isAdmin(); 
     }
 
     match /assignments/{assignmentId} {
-      allow create: if isValidAssignment(incoming()) && isValidId(assignmentId);
-      allow get, list: if true; // In prod: filter by student/class
-      allow update, delete: if false; 
+      allow read: if request.auth != null;
+      allow write: if isAdmin() || (request.auth != null); // Teachers might need to create these
     }
 
     match /submissions/{submissionId} {
-      allow create: if isValidSubmission(incoming()) && isValidId(submissionId);
-      allow get, list: if true; // In prod: filter by assignment or student
-      allow update, delete: if false;
+      allow read: if request.auth != null;
+      allow write: if request.auth != null; // Students need to write submissions
+    }
+
+    // ==========================================
+    // PUBLIC WEBSITE COLLECTIONS
+    // ==========================================
+
+    match /publicTeachers/{teacherId} {
+      // Anyone (even guests) can read public profiles for the homepage
+      allow read: if true;
+      // Only admins can manage the public profiles
+      allow write: if isAdmin();
     }
   }
 }
