@@ -8,6 +8,15 @@ import { getUserProfile, UserProfile } from "@/lib/users";
 import { getPublicTeachers, createPublicTeacher, updatePublicTeacher, deletePublicTeacher, PublicTeacherProfile } from "@/lib/dashboard-data";
 import { Card3D } from "@/components/ui/Card3D";
 
+const SECTIONS = [
+  "KG", "Play", "Nursery",
+  "Class-1", "Class-2", "Class-3", "Class-4", "Class-5",
+  "Class-6", "Class-7", "Class-8", "Class-9", "Class-10",
+  "SSC", "Class-11", "Class-12", "HSC",
+  "Mathematics Coaching", "Science Coaching", "English Coaching",
+  "Medical Prep", "Engineering Prep", "Varsity Admission"
+];
+
 export default function ManageStaffPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -17,6 +26,7 @@ export default function ManageStaffPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<PublicTeacherProfile | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [formData, setFormData] = useState<Omit<PublicTeacherProfile, 'id'>>({
     name: "",
@@ -71,6 +81,37 @@ export default function ManageStaffPage() {
       });
     }
     setIsModalOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    try {
+      const uploadData = new FormData();
+      uploadData.append("file", file);
+      // Replace 'ml_default' with your actual Cloudinary unsigned upload preset
+      uploadData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default"); 
+      
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "demo";
+      
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        body: uploadData,
+      });
+      const data = await res.json();
+      if (data.secure_url) {
+        setFormData({ ...formData, image: data.secure_url });
+      } else {
+        alert("Image upload failed. Please check your Cloudinary settings in .env.local");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error uploading image. Try again.");
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -233,10 +274,25 @@ export default function ManageStaffPage() {
                       <input type="text" required value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. 10 years" />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-sm font-bold text-slate-700">Image URL</label>
-                      <div className="flex items-center gap-2">
-                        <ImageIcon className="w-5 h-5 text-slate-400" />
-                        <input type="url" required value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="https://..." />
+                      <label className="block text-sm font-bold text-slate-700">Profile Photo</label>
+                      <div className="flex items-center gap-4">
+                        {formData.image && formData.image !== "https://picsum.photos/seed/new/400/400" ? (
+                          <img src={formData.image} alt="Preview" className="w-12 h-12 rounded-xl object-cover border border-slate-200" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center border border-slate-200">
+                            <ImageIcon className="w-5 h-5 text-slate-400" />
+                          </div>
+                        )}
+                        <label className="flex-1 cursor-pointer">
+                          <div className={`w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 text-sm flex items-center justify-center hover:bg-slate-100 transition-colors ${isUploadingImage ? 'opacity-50 pointer-events-none' : ''}`}>
+                            {isUploadingImage ? (
+                              <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</span>
+                            ) : (
+                              <span className="font-medium text-slate-600">Choose Image to Upload</span>
+                            )}
+                          </div>
+                          <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                        </label>
                       </div>
                     </div>
                   </div>
@@ -261,7 +317,17 @@ export default function ManageStaffPage() {
                     </div>
                     <div className="space-y-2">
                       <label className="block text-sm font-bold text-slate-700">Section Header</label>
-                      <input type="text" required value={formData.section} onChange={e => setFormData({...formData, section: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. Class 1-2 OR Science Coaching" />
+                      <select 
+                        required 
+                        value={formData.section} 
+                        onChange={e => setFormData({...formData, section: e.target.value})} 
+                        className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                      >
+                        <option value="" disabled>Select a class or section...</option>
+                        {SECTIONS.map(sec => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </form>
