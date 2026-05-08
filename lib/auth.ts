@@ -7,27 +7,30 @@ import {
   browserLocalPersistence,
   updateProfile
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { getAuthInstance, getDb } from './firebase';
+import { getUserProfile, UserProfile } from './users';
 
-export interface AdminUser {
+export interface AppUser {
   uid: string;
   email: string;
   displayName: string;
-  role: 'admin' | 'super-admin';
+  role: 'admin' | 'super-admin' | 'teacher' | 'student';
   createdAt: Date;
   lastLogin: Date;
 }
 
+export type AdminUser = AppUser;
+
 /**
- * Register a new admin user
+ * Register a new user with a specific role
  */
-export async function registerAdmin(
+export async function registerUser(
   email: string,
   password: string,
   displayName: string,
-  role: 'admin' | 'super-admin' = 'admin'
-): Promise<{ user: AdminUser; idToken: string }> {
+  role: 'admin' | 'super-admin' | 'teacher' | 'student' = 'admin'
+): Promise<{ user: AppUser; idToken: string }> {
   try {
     const auth = getAuthInstance();
     const db = getDb();
@@ -36,28 +39,30 @@ export async function registerAdmin(
       throw new Error('Firebase not configured properly');
     }
 
-    // Set persistence to LOCAL (stay logged in)
+    // Set persistence to LOCAL
     await setPersistence(auth, browserLocalPersistence);
 
     // Create user account
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Update display name
+    // Update display name in Firebase Auth
     await updateProfile(user, { displayName });
 
-    // Store admin metadata in Firestore
-    await setDoc(doc(db, 'admins', user.uid), {
+    // Determine collection
+    const collectionName = (role === 'admin' || role === 'super-admin') ? 'admins' : 'users';
+
+    // Store user metadata in Firestore
+    await setDoc(doc(db, collectionName, user.uid), {
       uid: user.uid,
       email: user.email,
       displayName,
       role,
+      status: 'active',
       createdAt: serverTimestamp(),
       lastLogin: serverTimestamp(),
-      status: 'active'
     });
 
-    // Get ID token for session
     const idToken = await user.getIdToken();
 
     return {
@@ -77,9 +82,9 @@ export async function registerAdmin(
 }
 
 /**
- * Login admin user with email and password
+ * Login user with email and password
  */
-export async function loginAdmin(email: string, password: string): Promise<{ user: AdminUser; idToken: string }> {
+export async function loginUser(email: string, password: string): Promise<{ user: AppUser; idToken: string }> {
   try {
     const auth = getAuthInstance();
     const db = getDb();
@@ -88,42 +93,33 @@ export async function loginAdmin(email: string, password: string): Promise<{ use
       throw new Error('Firebase not configured properly');
     }
 
-    // Set persistence to LOCAL
     await setPersistence(auth, browserLocalPersistence);
 
-    // Sign in
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Try to fetch admin metadata from Firestore
-    let adminData: any = null;
-    try {
-      const adminDocSnap = await getDoc(doc(db, 'admins', user.uid));
-      adminData = adminDocSnap.data();
-    } catch (err) {
-      // If we can't fetch admin data, that's okay during development
-      console.warn('Could not fetch admin data:', err);
+    // Use our centralized getUserProfile to check both collections
+    const profile = await getUserProfile(user.uid);
+    
+    if (!profile) {
+      throw new Error('User profile not found. Please contact administrator.');
     }
 
-    // Update last login
-    try {
-      await setDoc(doc(db, 'admins', user.uid), {
-        lastLogin: serverTimestamp()
-      }, { merge: true });
-    } catch (err) {
-      console.warn('Could not update last login:', err);
-    }
+    // Update last login in the correct collection
+    const collectionName = (profile.role === 'admin' || profile.role === 'super-admin') ? 'admins' : 'users';
+    await updateDoc(doc(db, collectionName, user.uid), {
+      lastLogin: serverTimestamp()
+    });
 
-    // Get ID token for session
     const idToken = await user.getIdToken();
 
     return {
       user: {
         uid: user.uid,
         email: user.email!,
-        displayName: user.displayName || adminData?.displayName || 'Admin',
-        role: adminData?.role || 'admin',
-        createdAt: adminData?.createdAt?.toDate?.() || new Date(),
+        displayName: profile.displayName || user.displayName || 'User',
+        role: profile.role,
+        createdAt: profile.createdAt?.toDate?.() || new Date(),
         lastLogin: new Date()
       },
       idToken
@@ -136,14 +132,11 @@ export async function loginAdmin(email: string, password: string): Promise<{ use
 /**
  * Logout current user
  */
-export async function logoutAdmin(): Promise<void> {
+export async function logoutUser(): Promise<void> {
   try {
     const auth = getAuthInstance();
-    if (!auth) {
-      throw new Error('Firebase not configured');
-    }
+    if (!auth) throw new Error('Firebase not configured');
     await signOut(auth);
-    // Clear session storage
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('adminToken');
       localStorage.removeItem('adminUser');
@@ -154,91 +147,47 @@ export async function logoutAdmin(): Promise<void> {
 }
 
 /**
- * Send password reset email
+ * Get current user session from Firebase Auth
  */
+export async function getCurrentUser(): Promise<AppUser | null> {
+  const auth = getAuthInstance();
+  if (!auth || !auth.currentUser) return null;
+
+  const profile = await getUserProfile(auth.currentUser.uid);
+  if (!profile) return null;
+
+  return {
+    uid: auth.currentUser.uid,
+    email: auth.currentUser.email!,
+    displayName: profile.displayName || auth.currentUser.displayName || 'User',
+    role: profile.role,
+    createdAt: profile.createdAt?.toDate?.() || new Date(),
+    lastLogin: profile.updatedAt?.toDate?.() || new Date()
+  };
+}
+
+// Keep legacy exports for compatibility during refactor
+export { 
+  registerUser as registerAdmin, 
+  loginUser as loginAdmin, 
+  logoutUser as logoutAdmin,
+  getCurrentUser as getCurrentAdmin
+};
+
 export async function sendPasswordReset(email: string): Promise<void> {
-  try {
-    const auth = getAuthInstance();
-    if (!auth) {
-      throw new Error('Firebase not configured');
-    }
-    await sendPasswordResetEmail(auth, email);
-  } catch (error: any) {
-    throw new Error(`Password reset failed: ${error.message}`);
-  }
+  const auth = getAuthInstance();
+  if (!auth) throw new Error('Firebase not configured');
+  await sendPasswordResetEmail(auth, email);
 }
 
-/**
- * Get current authenticated user
- */
-export async function getCurrentAdmin(): Promise<AdminUser | null> {
-  try {
-    const auth = getAuthInstance();
-    const db = getDb();
-    
-    if (!auth || !db) {
-      return null;
-    }
-
-    const user = auth.currentUser;
-    if (!user) {
-      return null;
-    }
-
-    // Fetch from Firestore
-    const adminDocSnap = await getDoc(doc(db, 'admins', user.uid));
-    
-    if (!adminDocSnap.exists()) {
-      return null;
-    }
-
-    const adminData = adminDocSnap.data();
-
-    return {
-      uid: user.uid,
-      email: user.email!,
-      displayName: user.displayName || adminData.displayName || 'Admin',
-      role: adminData.role || 'admin',
-      createdAt: adminData.createdAt?.toDate?.() || new Date(),
-      lastLogin: adminData.lastLogin?.toDate?.() || new Date()
-    };
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Store auth token in session storage
- */
-export function storeAuthToken(token: string): void {
+export function storeAuthToken(token: string) {
   if (typeof window !== 'undefined') {
     sessionStorage.setItem('adminToken', token);
   }
 }
 
-/**
- * Retrieve auth token from session storage
- */
-export function getAuthToken(): string | null {
-  if (typeof window !== 'undefined') {
-    return sessionStorage.getItem('adminToken');
-  }
-  return null;
-}
-
-/**
- * Clear auth token
- */
-export function clearAuthToken(): void {
+export function clearAuthToken() {
   if (typeof window !== 'undefined') {
     sessionStorage.removeItem('adminToken');
   }
-}
-
-/**
- * Check if user is authenticated
- */
-export function isAuthenticated(): boolean {
-  const token = getAuthToken();
-  return !!token;
 }

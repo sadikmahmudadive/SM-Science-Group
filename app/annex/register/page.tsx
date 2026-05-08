@@ -113,7 +113,7 @@ function RegisterContent() {
       }
 
       // STEP 3: Create Firebase Auth account
-      await authRegister(normalizedEmail, password, displayName);
+      await authRegister(normalizedEmail, password, displayName, approvedProfile.role);
 
       // After register, the user should be in the auth context
       const { getAuthInstance } = await import('@/lib/firebase');

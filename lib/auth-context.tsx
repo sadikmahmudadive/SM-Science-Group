@@ -10,7 +10,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, displayName: string) => Promise<void>;
+  register: (email: string, password: string, displayName: string, role?: 'admin' | 'super-admin' | 'teacher' | 'student') => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   clearError: () => void;
@@ -83,12 +83,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = async (email: string, password: string, displayName: string) => {
+  const register = async (email: string, password: string, displayName: string, role?: 'admin' | 'super-admin' | 'teacher' | 'student') => {
     try {
       setError(null);
       setLoading(true);
       const { registerAdmin } = await import('./auth');
-      const { user: adminUser, idToken } = await registerAdmin(email, password, displayName);
+      const { user: adminUser, idToken } = await registerAdmin(email, password, displayName, role);
       storeAuthToken(idToken);
       setUser(adminUser);
     } catch (err: any) {
