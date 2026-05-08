@@ -2,13 +2,15 @@
 
 import { motion, useScroll, useTransform } from "motion/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Lock, Binary, Mail, AlertCircle, Loader2 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeft, Lock, Binary, Mail, AlertCircle, Loader2, Users, GraduationCap, Shield } from "lucide-react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useAuth } from "@/lib/auth-context";
 
-export default function AnnexLogin() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const role = searchParams.get("role") || "admin";
   const { login, loading: authLoading, error: authError, user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -25,6 +27,14 @@ export default function AnnexLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  const roleInfo = {
+    admin: { title: "Admin Console", icon: Shield, desc: "Secure access to SM-Annex admin portal" },
+    teacher: { title: "Teacher Portal", icon: GraduationCap, desc: "Sign in to manage your classes and students" },
+    student: { title: "Student Portal", icon: Users, desc: "Sign in to access your grades and materials" }
+  }[role as "admin" | "teacher" | "student"] || { title: "Annex Login", icon: Binary, desc: "Secure access to SM-Annex" };
+
+  const RoleIcon = roleInfo.icon;
 
   // Redirect if already logged in
   useEffect(() => {
@@ -72,12 +82,12 @@ export default function AnnexLogin() {
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-100 rounded-full blur-[100px] opacity-60 pointer-events-none transform -translate-x-1/2 translate-y-1/2" />
 
         <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-          <Link href="/">
+          <Link href="/annex">
             <motion.button 
               whileHover={{ x: -5 }}
               className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-8"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to main site
+              <ArrowLeft className="w-4 h-4" /> Change role
             </motion.button>
           </Link>
           
@@ -87,7 +97,7 @@ export default function AnnexLogin() {
             className="flex justify-center mb-6"
           >
             <div className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-600/20">
-              <Binary className="w-8 h-8" />
+              <RoleIcon className="w-8 h-8" />
             </div>
           </motion.div>
           
@@ -97,7 +107,7 @@ export default function AnnexLogin() {
             transition={{ delay: 0.1 }}
             className="mt-2 text-center text-3xl font-extrabold text-slate-900 font-display"
           >
-            Admin Login
+            {roleInfo.title}
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -105,7 +115,7 @@ export default function AnnexLogin() {
             transition={{ delay: 0.2 }}
             className="mt-2 text-center text-sm text-slate-600"
           >
-            Secure access to SM-Annex admin portal
+            {roleInfo.desc}
           </motion.p>
         </div>
 
@@ -152,7 +162,7 @@ export default function AnnexLogin() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    placeholder="admin@example.com"
+                    placeholder="name@example.com"
                   />
                 </div>
               </motion.div>
@@ -214,7 +224,7 @@ export default function AnnexLogin() {
                 </div>
 
                 <div className="text-sm">
-                  <Link href="/annex/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+                  <Link href="/annex/forgot-password" university-name="font-medium text-indigo-600 hover:text-indigo-500">
                     Forgot password?
                   </Link>
                 </div>
@@ -255,7 +265,7 @@ export default function AnnexLogin() {
 
                 <div className="mt-6 text-center text-sm">
                   <Link href="/annex/register" className="font-medium text-indigo-600 hover:text-indigo-500">
-                    Register as admin
+                    Register as {role === 'admin' ? 'admin' : role}
                   </Link>
                 </div>
               </div>
@@ -265,13 +275,25 @@ export default function AnnexLogin() {
             <div className="mt-8 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
               <p className="text-xs text-indigo-700">
                 <strong>Demo Credentials:</strong><br />
-                Email: admin@smsciencegroup.com<br />
-                Password: AdminPassword123!
+                Email: {role}@smsciencegroup.com<br />
+                Password: {role === 'admin' ? 'AdminPassword123!' : 'UserPassword123!'}
               </p>
             </div>
           </div>
         </motion.div>
       </motion.div>
     </div>
+  );
+}
+
+export default function AnnexLogin() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

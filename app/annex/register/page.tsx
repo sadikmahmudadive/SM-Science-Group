@@ -2,15 +2,17 @@
 
 import { motion, useScroll, useTransform } from "motion/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, User, Lock, Binary, Mail, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { ArrowLeft, User, Lock, Binary, Mail, AlertCircle, CheckCircle, Loader2, Shield, GraduationCap, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { checkEmailApproval, activateUserProfile } from "@/lib/users";
 
-export default function AnnexRegister() {
+function RegisterContent() {
   const router = useRouter();
-  const { register, loading: authLoading, error: authError, user } = useAuth();
+  const searchParams = useSearchParams();
+  const role = searchParams.get("role") || "admin";
+  const { register: authRegister, loading: authLoading, error: authError, user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   
   const { scrollYProgress } = useScroll({
@@ -29,6 +31,14 @@ export default function AnnexRegister() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<"weak" | "medium" | "strong" | null>(null);
+
+  const roleInfo = {
+    admin: { title: "Join as Admin", icon: Shield, desc: "Register using your admin-approved email address" },
+    teacher: { title: "Join as Teacher", icon: GraduationCap, desc: "Create your teacher account to manage classrooms" },
+    student: { title: "Join as Student", icon: Users, desc: "Register to access your student portal" }
+  }[role as "admin" | "teacher" | "student"] || { title: "Join SM-Annex", icon: Binary, desc: "Create your portal account" };
+
+  const RoleIcon = roleInfo.icon;
 
   useEffect(() => {
     if (user) {
@@ -103,7 +113,7 @@ export default function AnnexRegister() {
       }
 
       // STEP 3: Create Firebase Auth account
-      await register(normalizedEmail, password, displayName);
+      await authRegister(normalizedEmail, password, displayName);
 
       // After register, the user should be in the auth context
       const { getAuthInstance } = await import('@/lib/firebase');
@@ -136,12 +146,12 @@ export default function AnnexRegister() {
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-100 rounded-full blur-[100px] opacity-60 pointer-events-none transform -translate-x-1/2 translate-y-1/2" />
 
         <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-          <Link href="/">
+          <Link href="/annex">
             <motion.button
               whileHover={{ x: -5 }}
               className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-8"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to main site
+              <ArrowLeft className="w-4 h-4" /> Change role
             </motion.button>
           </Link>
 
@@ -151,7 +161,7 @@ export default function AnnexRegister() {
             className="flex justify-center mb-6"
           >
             <div className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-600/20">
-              <Binary className="w-8 h-8" />
+              <RoleIcon className="w-8 h-8" />
             </div>
           </motion.div>
 
@@ -161,7 +171,7 @@ export default function AnnexRegister() {
             transition={{ delay: 0.1 }}
             className="mt-2 text-center text-3xl font-extrabold text-slate-900 font-display"
           >
-            Join SM-Annex
+            {roleInfo.title}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -169,7 +179,7 @@ export default function AnnexRegister() {
             transition={{ delay: 0.2 }}
             className="mt-2 text-center text-sm text-slate-600"
           >
-            Register using your admin-approved email address
+            {roleInfo.desc}
           </motion.p>
         </div>
 
@@ -241,7 +251,7 @@ export default function AnnexRegister() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    placeholder="admin@example.com"
+                    placeholder="name@example.com"
                   />
                 </div>
               </motion.div>
@@ -365,7 +375,7 @@ export default function AnnexRegister() {
                 </div>
 
                 <div className="mt-6 text-center text-sm">
-                  <Link href="/annex/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+                  <Link href={`/annex/login?role=${role}`} className="font-medium text-indigo-600 hover:text-indigo-500">
                     Sign in here
                   </Link>
                 </div>
@@ -375,5 +385,17 @@ export default function AnnexRegister() {
         </motion.div>
       </motion.div>
     </div>
+  );
+}
+
+export default function AnnexRegister() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
+      </div>
+    }>
+      <RegisterContent />
+    </Suspense>
   );
 }

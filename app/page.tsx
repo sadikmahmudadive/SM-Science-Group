@@ -248,7 +248,7 @@ export default function HomePage() {
                   <p className="text-cyan-700/80 mb-6 flex-grow leading-relaxed max-w-md">
                     Smart portal for attendance, real-time grading, performance tracking, and parent-teacher seamless communication.
                   </p>
-                  <Link href="/annex/login" className="text-cyan-700 font-bold flex items-center gap-2 group hover:gap-3 transition-all bg-cyan-200/50 hover:bg-cyan-200 px-6 py-3 rounded-xl w-fit">
+                  <Link href="/annex" className="text-cyan-700 font-bold flex items-center gap-2 group hover:gap-3 transition-all bg-cyan-200/50 hover:bg-cyan-200 px-6 py-3 rounded-xl w-fit">
                     Access Portal <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
