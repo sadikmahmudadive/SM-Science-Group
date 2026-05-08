@@ -1,0 +1,82 @@
+{
+  "entities": {
+    "Notification": {
+      "title": "Notification",
+      "description": "User notification for assignments, messages, or announcements",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The user role or ID this notification belongs to" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["assignment", "message", "announcement"] },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "message", "type", "read", "createdAt"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Global campus announcement",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "authorId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "authorId", "createdAt"]
+    },
+    "Assignment": {
+      "title": "Assignment",
+      "description": "Educational task assigned to students or classes",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "target": { "type": "string", "description": "Class ID or Student ID" },
+        "teacherId": { "type": "string" },
+        "attachments": { 
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "description", "dueDate", "target", "teacherId", "createdAt"]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "Student's work submitted for an assignment",
+      "type": "object",
+      "properties": {
+        "assignmentId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "content": { "type": "string" },
+        "attachments": { 
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "submittedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["assignmentId", "studentId", "content", "submittedAt"]
+    }
+  },
+  "firestore": {
+    "notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Collection of user notifications"
+    },
+    "announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Collection of global announcements"
+    },
+    "assignments/{assignmentId}": {
+      "schema": "Assignment",
+      "description": "Collection of student assignments"
+    },
+    "submissions/{submissionId}": {
+      "schema": "Submission",
+      "description": "Collection of student work submissions"
+    }
+  }
+}

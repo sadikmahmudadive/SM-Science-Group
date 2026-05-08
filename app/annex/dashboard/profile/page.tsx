@@ -1,0 +1,288 @@
+"use client";
+
+import { useState, useEffect, Suspense } from "react";
+import Image from "next/image";
+import { Camera, Mail, Phone, MapPin, Save, User, Loader2 } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { getUserProfile, updateAnyUserProfile, uploadUserPhoto, UserProfile } from "@/lib/users";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
+
+function ProfileContent() {
+  const { user, loading: authLoading } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [profileData, setProfileData] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadProfile() {
+      if (!user?.uid) return;
+      try {
+        setLoading(true);
+        const profile = await getUserProfile(user.uid);
+        if (profile) {
+          setProfileData(profile);
+        } else {
+          setError("Profile not found in database.");
+        }
+      } catch (err: any) {
+        console.error("Error loading profile:", err);
+        setError("Failed to load profile details.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProfile();
+  }, [user]);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!profileData || !user?.uid) return;
+
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setError(null);
+    try {
+      const photoUrl = await uploadImageToCloudinary(file);
+      await uploadUserPhoto(user.uid, photoUrl);
+      setProfileData({ ...profileData, photoUrl });
+    } catch (err: any) {
+      console.error("Error uploading photo:", err);
+      setError("Failed to upload photo. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!profileData || !user?.uid) return;
+
+    setSaving(true);
+    setError(null);
+    try {
+      await updateAnyUserProfile(user.uid, {
+        displayName: profileData.displayName,
+        phone: profileData.phone,
+        address: profileData.address,
+        bio: profileData.bio,
+      });
+      setIsEditing(false);
+    } catch (err: any) {
+      console.error("Error saving profile:", err);
+      setError("Failed to save changes. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (authLoading || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mx-auto" />
+          <p className="text-slate-500 font-medium">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-2xl mx-auto mt-12 p-6 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-center font-medium">
+        {error}
+      </div>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <div className="max-w-2xl mx-auto mt-12 p-6 bg-slate-50 border border-slate-200 rounded-2xl text-slate-600 text-center font-medium">
+        No profile data available. Please contact your administrator.
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold text-slate-900 font-display">Profile Details</h2>
+          <p className="text-slate-500 mt-1">Manage your personal information and preferences.</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row">
+        {/* Profile Sidebar */}
+        <div className="md:w-1/3 bg-slate-50 p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-200 text-center relative">
+          <div className="relative group w-32 h-32 mb-6">
+            <div className="w-full h-full rounded-full border-4 border-white shadow-xl overflow-hidden bg-white">
+              <Image
+                src={
+                  profileData.photoUrl
+                    ? profileData.photoUrl
+                    : profileData.displayName
+                    ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileData.displayName}`
+                    : "https://picsum.photos/seed/user/200/200"
+                }
+                alt="Profile"
+                width={128}
+                height={128}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {isEditing && (
+              <label
+                htmlFor="avatar-upload"
+                className="absolute inset-0 bg-slate-900/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white backdrop-blur-sm z-10"
+              >
+                {uploading ? (
+                  <Loader2 className="w-8 h-8 animate-spin" />
+                ) : (
+                  <Camera className="w-8 h-8" />
+                )}
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  disabled={uploading}
+                />
+              </label>
+            )}
+          </div>
+          <h3 className="text-xl font-bold text-slate-900 font-display">{profileData.displayName}</h3>
+          <p className="text-sm font-bold text-indigo-600 uppercase tracking-widest mt-1">{profileData.role}</p>
+          <div className="mt-4 px-4 py-2 bg-white rounded-lg border border-slate-200 shadow-sm">
+            <p className="text-xs text-slate-500 font-medium">
+              {profileData.role === "admin" || profileData.role === "super-admin"
+                ? "Admin ID"
+                : profileData.role === "teacher"
+                ? "Teacher ID"
+                : "Student ID"}
+            </p>
+            <p className="text-sm font-bold text-slate-900">{profileData.systemId || "N/A"}</p>
+          </div>
+          {isEditing && (
+            <p className="text-xs text-slate-500 font-medium mt-4">
+              Hover over photo and click to upload
+            </p>
+          )}
+        </div>
+
+        {/* Profile Form */}
+        <div className="md:w-2/3 p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-bold text-slate-800">Personal Information</h3>
+            {!isEditing ? (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="text-sm font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-colors"
+              >
+                Edit Profile
+              </button>
+            ) : (
+              <button
+                onClick={handleSave}
+                disabled={saving || uploading}
+                className="flex items-center gap-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg transition-colors shadow-md shadow-indigo-200 disabled:opacity-50"
+              >
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <User className="w-3 h-3" /> Full Name
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={profileData.displayName}
+                    onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
+                    className="w-full border-slate-300 rounded-xl px-4 py-2.5 focus:ring-indigo-500 focus:border-indigo-500 bg-white border shadow-sm transition-colors text-sm"
+                  />
+                ) : (
+                  <p className="text-slate-900 font-medium py-2">{profileData.displayName}</p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <Mail className="w-3 h-3" /> Email Address
+                </label>
+                <div className="w-full border-slate-300 rounded-xl px-4 py-2.5 bg-slate-100 border shadow-sm transition-colors text-sm text-slate-500 cursor-not-allowed">
+                  {profileData.email}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <Phone className="w-3 h-3" /> Phone Number
+                </label>
+                {isEditing ? (
+                  <input
+                    type="tel"
+                    value={profileData.phone || ""}
+                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                    className="w-full border-slate-300 rounded-xl px-4 py-2.5 focus:ring-indigo-500 focus:border-indigo-500 bg-white border shadow-sm transition-colors text-sm"
+                  />
+                ) : (
+                  <p className="text-slate-900 font-medium py-2">{profileData.phone || "Not provided"}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <MapPin className="w-3 h-3" /> Address
+              </label>
+              {isEditing ? (
+                <textarea
+                  value={profileData.address || ""}
+                  onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
+                  rows={2}
+                  className="w-full border-slate-300 rounded-xl px-4 py-2.5 focus:ring-indigo-500 focus:border-indigo-500 bg-white border shadow-sm transition-colors text-sm resize-none"
+                />
+              ) : (
+                <p className="text-slate-900 font-medium py-2">{profileData.address || "Not provided"}</p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                Bio
+              </label>
+              {isEditing ? (
+                <textarea
+                  value={profileData.bio || ""}
+                  onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                  rows={3}
+                  className="w-full border-slate-300 rounded-xl px-4 py-2.5 focus:ring-indigo-500 focus:border-indigo-500 bg-white border shadow-sm transition-colors text-sm resize-none"
+                />
+              ) : (
+                <p className="text-slate-900 font-medium py-2">{profileData.bio || "No bio provided."}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[400px]">Loading...</div>}>
+      <ProfileContent />
+    </Suspense>
+  );
+}
