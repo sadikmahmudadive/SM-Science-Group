@@ -43,9 +43,13 @@ export default function ClassesPage() {
     name: "",
     classCode: "00",
     teacherId: "",
-    schedule: "",
+    routineDays: [] as string[],
+    routineStartTime: "10:00",
+    routineEndTime: "11:30",
     studentCount: 0
   });
+
+  const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   useEffect(() => {
     async function loadData() {
@@ -78,11 +82,41 @@ export default function ClassesPage() {
   const handleOpenModal = (cls?: ClassData) => {
     if (cls) {
       setEditingClass(cls);
+      
+      let routineDays: string[] = [];
+      let routineStartTime = "10:00";
+      let routineEndTime = "11:30";
+      
+      if (cls.schedule && cls.schedule.includes("|")) {
+        const [daysPart, timePart] = cls.schedule.split("|").map(s => s.trim());
+        routineDays = daysPart.split(",").map(s => s.trim());
+        if (timePart && timePart.includes("-")) {
+          const [startStr, endStr] = timePart.split("-").map(s => s.trim());
+          const parseTime = (timeStr: string) => {
+            if (!timeStr) return "";
+            const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+            if (match) {
+              let h = parseInt(match[1], 10);
+              const m = match[2];
+              const ampm = match[3].toUpperCase();
+              if (ampm === "PM" && h < 12) h += 12;
+              if (ampm === "AM" && h === 12) h = 0;
+              return `${h.toString().padStart(2, '0')}:${m}`;
+            }
+            return timeStr;
+          };
+          routineStartTime = parseTime(startStr) || "10:00";
+          routineEndTime = parseTime(endStr) || "11:30";
+        }
+      }
+
       setFormData({
         name: cls.name,
         classCode: cls.classCode,
         teacherId: cls.teacherId,
-        schedule: cls.schedule,
+        routineDays,
+        routineStartTime,
+        routineEndTime,
         studentCount: cls.studentCount
       });
     } else {
@@ -91,7 +125,9 @@ export default function ClassesPage() {
         name: "",
         classCode: "00",
         teacherId: teachers.length > 0 ? teachers[0].uid : "",
-        schedule: "",
+        routineDays: [],
+        routineStartTime: "10:00",
+        routineEndTime: "11:30",
         studentCount: 0
       });
     }
@@ -102,12 +138,32 @@ export default function ClassesPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      const formatTime = (time24: string) => {
+         if (!time24) return "";
+         const [h, m] = time24.split(":");
+         let hour = parseInt(h, 10);
+         const ampm = hour >= 12 ? "PM" : "AM";
+         hour = hour % 12;
+         if (hour === 0) hour = 12;
+         return `${hour}:${m} ${ampm}`;
+      };
+
+      const finalSchedule = `${formData.routineDays.length > 0 ? formData.routineDays.join(", ") : "TBA"} | ${formatTime(formData.routineStartTime)} - ${formatTime(formData.routineEndTime)}`;
+      
+      const payload = {
+        name: formData.name,
+        classCode: formData.classCode,
+        teacherId: formData.teacherId,
+        schedule: finalSchedule,
+        studentCount: formData.studentCount
+      };
+
       if (editingClass) {
-        await updateClass(editingClass.id, formData);
-        setClasses(classes.map(c => c.id === editingClass.id ? { ...c, ...formData } : c));
+        await updateClass(editingClass.id, payload);
+        setClasses(classes.map(c => c.id === editingClass.id ? { ...c, ...payload } : c));
       } else {
-        const id = await createClass(formData);
-        setClasses([...classes, { id, ...formData }]);
+        const id = await createClass(payload);
+        setClasses([...classes, { id, ...payload }]);
       }
       setIsModalOpen(false);
     } catch (err) {
@@ -289,14 +345,51 @@ export default function ClassesPage() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-bold text-slate-700">Schedule / Routine</label>
-                  <textarea
-                    required rows={3}
-                    value={formData.schedule} onChange={e => setFormData({...formData, schedule: e.target.value})}
-                    placeholder="e.g. Mon & Wed, 10:00 AM - 11:30 AM"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm resize-none"
-                  />
+                <div className="space-y-4 border border-slate-200 p-4 rounded-xl bg-slate-50/50">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-slate-700">Days of the Week</label>
+                    <div className="flex flex-wrap gap-2">
+                      {DAYS.map(day => (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => {
+                            if (formData.routineDays.includes(day)) {
+                              setFormData({...formData, routineDays: formData.routineDays.filter(d => d !== day)});
+                            } else {
+                              setFormData({...formData, routineDays: [...formData.routineDays, day]});
+                            }
+                          }}
+                          className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-colors ${
+                            formData.routineDays.includes(day)
+                              ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                              : "bg-white text-slate-600 border-slate-300 hover:border-indigo-300"
+                          }`}
+                        >
+                          {day}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-slate-700">Start Time</label>
+                      <input
+                        type="time" required
+                        value={formData.routineStartTime} onChange={e => setFormData({...formData, routineStartTime: e.target.value})}
+                        className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-slate-700">End Time</label>
+                      <input
+                        type="time" required
+                        value={formData.routineEndTime} onChange={e => setFormData({...formData, routineEndTime: e.target.value})}
+                        className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="pt-4 border-t border-slate-100">
