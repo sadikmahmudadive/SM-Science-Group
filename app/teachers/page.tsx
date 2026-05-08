@@ -1,9 +1,9 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
 import Image from "next/image";
 import { Mail, Phone, Award, BookOpen, Users, Briefcase } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 // Comprehensive teacher database organized by class and section
 const TEACHERS_DATA = {
