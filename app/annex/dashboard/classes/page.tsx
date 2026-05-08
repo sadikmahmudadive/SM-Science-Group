@@ -22,6 +22,10 @@ const CLASSES_LIST = [
   { value: "10", label: "Class-8" },
   { value: "11", label: "Class-9" },
   { value: "12", label: "Class-10" },
+  { value: "13", label: "SSC" },
+  { value: "14", label: "Class-11" },
+  { value: "15", label: "Class-12" },
+  { value: "16", label: "HSC" },
 ];
 
 export default function ClassesPage() {
@@ -350,7 +354,9 @@ export default function ClassesPage() {
                     <label className="block text-sm font-bold text-slate-700">Days of the Week</label>
                     <div className="flex flex-wrap gap-2">
                       {DAYS.map(day => (
-                        <button
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                           key={day}
                           type="button"
                           onClick={() => {
@@ -360,14 +366,14 @@ export default function ClassesPage() {
                               setFormData({...formData, routineDays: [...formData.routineDays, day]});
                             }
                           }}
-                          className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-colors ${
+                          className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all duration-300 ${
                             formData.routineDays.includes(day)
-                              ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
-                              : "bg-white text-slate-600 border-slate-300 hover:border-indigo-300"
+                              ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
+                              : "bg-white text-slate-600 border-slate-300 hover:border-indigo-300 hover:bg-indigo-50/50"
                           }`}
                         >
                           {day}
-                        </button>
+                        </motion.button>
                       ))}
                     </div>
                   </div>

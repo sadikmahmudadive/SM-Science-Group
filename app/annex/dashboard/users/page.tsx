@@ -19,6 +19,10 @@ const CLASSES = [
   { value: "10", label: "Class-8" },
   { value: "11", label: "Class-9" },
   { value: "12", label: "Class-10" },
+  { value: "13", label: "SSC" },
+  { value: "14", label: "Class-11" },
+  { value: "15", label: "Class-12" },
+  { value: "16", label: "HSC" },
 ];
 
 export default function ManageUsersPage() {
@@ -308,7 +312,16 @@ export default function ManageUsersPage() {
                         <label className="block text-sm font-bold text-slate-700">Type</label>
                         <select
                           value={newUser.studentType}
-                          onChange={(e) => setNewUser({...newUser, studentType: e.target.value})}
+                          onChange={(e) => {
+                            const newType = e.target.value;
+                            // If switching to School and current class is SSC/11/12/HSC, reset it to KG (00)
+                            const currentClassInt = parseInt(newUser.studentClass);
+                            if (newType === 'S' && currentClassInt > 12) {
+                              setNewUser({...newUser, studentType: newType, studentClass: '00'});
+                            } else {
+                              setNewUser({...newUser, studentType: newType});
+                            }
+                          }}
                           className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                         >
                           <option value="S">School ({newUser.role === 'student' ? 'S' : 'STCH'})</option>
@@ -332,7 +345,7 @@ export default function ManageUsersPage() {
                         onChange={(e) => setNewUser({...newUser, studentClass: e.target.value})}
                         className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                       >
-                        {CLASSES.map((cls) => (
+                        {CLASSES.filter(cls => newUser.studentType === 'C' || parseInt(cls.value) <= 12).map((cls) => (
                           <option key={cls.value} value={cls.value}>{cls.label} ({cls.value})</option>
                         ))}
                       </select>
