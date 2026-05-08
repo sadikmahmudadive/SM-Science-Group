@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { getUserProfile, UserProfile, getUsers } from "@/lib/users";
 import { getAllClasses, createClass, updateClass, deleteClass, getTeacherClasses, ClassData } from "@/lib/dashboard-data";
 import { Card3D } from "@/components/ui/Card3D";
+import { TimeRangePicker } from "@/components/ui/TimeRangePicker";
 
 const CLASSES_LIST = [
   { value: "00", label: "KG" },
@@ -378,23 +379,13 @@ export default function ClassesPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="block text-sm font-bold text-slate-700">Start Time</label>
-                      <input
-                        type="time" required
-                        value={formData.routineStartTime} onChange={e => setFormData({...formData, routineStartTime: e.target.value})}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-sm font-bold text-slate-700">End Time</label>
-                      <input
-                        type="time" required
-                        value={formData.routineEndTime} onChange={e => setFormData({...formData, routineEndTime: e.target.value})}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                      />
-                    </div>
+                  <div className="pt-2">
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Class Time</label>
+                    <TimeRangePicker 
+                      startTime={formData.routineStartTime}
+                      endTime={formData.routineEndTime}
+                      onChange={(start, end) => setFormData({...formData, routineStartTime: start, routineEndTime: end})}
+                    />
                   </div>
                 </div>
 
