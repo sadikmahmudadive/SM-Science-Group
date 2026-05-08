@@ -45,9 +45,9 @@ export default function DashboardPage() {
     case 'super-admin':
       return <AdminDashboard />;
     case 'teacher':
-      return <TeacherDashboard />;
+      return <TeacherDashboard profile={profile} />;
     case 'student':
-      return <StudentDashboard />;
+      return <StudentDashboard profile={profile} />;
     default:
       return (
         <div className="text-center py-20">

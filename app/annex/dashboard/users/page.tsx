@@ -53,8 +53,12 @@ export default function ManageUsersPage() {
     setIsSubmitting(true);
     try {
       let systemId = "";
-      if (newUser.role === "student") {
-        const prefix = `${newUser.studentType}${newUser.studentYear}${newUser.studentClass}`;
+      if (newUser.role === "student" || newUser.role === "teacher") {
+        const typePrefix = newUser.role === "student" 
+          ? newUser.studentType 
+          : `${newUser.studentType}TCH`;
+
+        const prefix = `${typePrefix}${newUser.studentYear}${newUser.studentClass}`;
         
         // Find highest serial for this prefix
         const existingUsers = users.filter(u => u.systemId && u.systemId.startsWith(prefix));
@@ -70,7 +74,7 @@ export default function ManageUsersPage() {
         const nextSerial = (maxSerial + 1).toString().padStart(2, '0');
         systemId = `${prefix}${nextSerial}`;
       } else {
-        const idPrefix = "TCH";
+        const idPrefix = "ADM";
         systemId = `${idPrefix}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
       }
 
@@ -86,8 +90,8 @@ export default function ManageUsersPage() {
         systemId: systemId
       };
 
-      if (newUser.role === "student") {
-        userPayload.studentType = newUser.studentType;
+      if (newUser.role === "student" || newUser.role === "teacher") {
+        userPayload.personType = newUser.studentType;
         userPayload.enrollmentYear = newUser.studentYear;
         userPayload.classCode = newUser.studentClass;
       }
@@ -297,18 +301,18 @@ export default function ManageUsersPage() {
                   </div>
                 </div>
 
-                {newUser.role === 'student' && (
+                {(newUser.role === 'student' || newUser.role === 'teacher') && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4 pt-2">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="block text-sm font-bold text-slate-700">Student Type</label>
+                        <label className="block text-sm font-bold text-slate-700">Type</label>
                         <select
                           value={newUser.studentType}
                           onChange={(e) => setNewUser({...newUser, studentType: e.target.value})}
                           className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                         >
-                          <option value="S">School (S)</option>
-                          <option value="C">Coaching (C)</option>
+                          <option value="S">School ({newUser.role === 'student' ? 'S' : 'STCH'})</option>
+                          <option value="C">Coaching ({newUser.role === 'student' ? 'C' : 'CTCH'})</option>
                         </select>
                       </div>
                       <div className="space-y-2">
