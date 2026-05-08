@@ -150,7 +150,7 @@ export default function AnnexRegister() {
             animate={{ opacity: 1, y: 0 }}
             className="flex justify-center mb-6"
           >
-            <div className="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-xl shadow-emerald-600/20">
+            <div className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-600/20">
               <Binary className="w-8 h-8" />
             </div>
           </motion.div>
@@ -213,7 +213,7 @@ export default function AnnexRegister() {
                     disabled={loading || authLoading}
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Your Full Name"
                   />
                 </div>
@@ -240,7 +240,7 @@ export default function AnnexRegister() {
                     disabled={loading || authLoading}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="admin@example.com"
                   />
                 </div>
@@ -267,7 +267,7 @@ export default function AnnexRegister() {
                     disabled={loading || authLoading}
                     value={password}
                     onChange={handlePasswordChange}
-                    className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="••••••••"
                   />
                   <button
@@ -322,12 +322,12 @@ export default function AnnexRegister() {
                     disabled={loading || authLoading}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="••••••••"
                   />
                   {confirmPassword && password === confirmPassword && (
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <CheckCircle className="h-5 w-5 text-indigo-500" />
                     </div>
                   )}
                 </div>
@@ -341,7 +341,7 @@ export default function AnnexRegister() {
                 <button
                   type="submit"
                   disabled={loading || authLoading}
-                  className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading || authLoading ? (
                     <>
@@ -365,7 +365,7 @@ export default function AnnexRegister() {
                 </div>
 
                 <div className="mt-6 text-center text-sm">
-                  <Link href="/annex/login" className="font-medium text-emerald-600 hover:text-emerald-500">
+                  <Link href="/annex/login" className="font-medium text-indigo-600 hover:text-indigo-500">
                     Sign in here
                   </Link>
                 </div>

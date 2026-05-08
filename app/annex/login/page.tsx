@@ -86,7 +86,7 @@ export default function AnnexLogin() {
             animate={{ opacity: 1, y: 0 }}
             className="flex justify-center mb-6"
           >
-            <div className="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-xl shadow-emerald-600/20">
+            <div className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-600/20">
               <Binary className="w-8 h-8" />
             </div>
           </motion.div>
@@ -151,7 +151,7 @@ export default function AnnexLogin() {
                     disabled={loading || authLoading}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="admin@example.com"
                   />
                 </div>
@@ -179,7 +179,7 @@ export default function AnnexLogin() {
                     disabled={loading || authLoading}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3 border bg-slate-50 transition-colors hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="••••••••"
                   />
                   <button
@@ -206,7 +206,7 @@ export default function AnnexLogin() {
                     name="remember-me"
                     type="checkbox"
                     disabled={loading || authLoading}
-                    className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-slate-300 rounded cursor-pointer disabled:opacity-50"
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded cursor-pointer disabled:opacity-50"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-900 cursor-pointer">
                     Keep me signed in
@@ -214,7 +214,7 @@ export default function AnnexLogin() {
                 </div>
 
                 <div className="text-sm">
-                  <Link href="/annex/forgot-password" className="font-medium text-emerald-600 hover:text-emerald-500">
+                  <Link href="/annex/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
                     Forgot password?
                   </Link>
                 </div>
@@ -229,7 +229,7 @@ export default function AnnexLogin() {
                 <button
                   type="submit"
                   disabled={loading || authLoading}
-                  className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading || authLoading ? (
                     <>
@@ -254,7 +254,7 @@ export default function AnnexLogin() {
                 </div>
 
                 <div className="mt-6 text-center text-sm">
-                  <Link href="/annex/register" className="font-medium text-emerald-600 hover:text-emerald-500">
+                  <Link href="/annex/register" className="font-medium text-indigo-600 hover:text-indigo-500">
                     Register as admin
                   </Link>
                 </div>
@@ -262,8 +262,8 @@ export default function AnnexLogin() {
             </form>
 
             {/* Info Box */}
-            <div className="mt-8 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-              <p className="text-xs text-emerald-700">
+            <div className="mt-8 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+              <p className="text-xs text-indigo-700">
                 <strong>Demo Credentials:</strong><br />
                 Email: admin@smsciencegroup.com<br />
                 Password: AdminPassword123!

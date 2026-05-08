@@ -105,30 +105,30 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
         <div className="h-20 flex items-center px-6 border-b border-slate-200">
           <Link href="/annex/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-emerald-600 text-white rounded-lg flex items-center justify-center font-bold text-sm shadow-sm">
+            <div className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-sm shadow-sm">
               <Binary className="w-5 h-5" />
             </div>
-            <span className="font-black text-emerald-900 tracking-tight text-xl italic">SM-ANNEX</span>
+            <span className="font-black text-indigo-900 tracking-tight text-xl italic">SM-ANNEX</span>
           </Link>
         </div>
         
         <nav className="flex-1 py-6 px-4 space-y-2">
-          <Link href="/annex/dashboard" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors font-medium">
+          <Link href="/annex/dashboard" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors font-medium">
             <BookOpen className="w-5 h-5" /> Dashboard
           </Link>
-          <Link href="/annex/dashboard/profile" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors font-medium">
+          <Link href="/annex/dashboard/profile" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors font-medium">
             <User className="w-5 h-5" /> Profile
           </Link>
 
-          <Link href="/annex/dashboard/users" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors font-medium">
+          <Link href="/annex/dashboard/users" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors font-medium">
             <Shield className="w-5 h-5" /> Manage Users
           </Link>
 
-          <Link href="/annex/dashboard/announcements" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors font-medium">
+          <Link href="/annex/dashboard/announcements" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors font-medium">
             <Megaphone className="w-5 h-5" /> Announcements
           </Link>
 
-          <Link href="#" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors font-medium">
+          <Link href="#" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors font-medium">
             <Settings className="w-5 h-5" /> Settings
           </Link>
         </nav>
@@ -164,7 +164,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                 <p className="text-sm font-bold text-slate-900">{displayName}</p>
                 <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
                  <Image src={profilePhotoUrl} alt="Avatar" width={40} height={40} className="w-full h-full object-cover" />
               </div>
             </div>

@@ -4,9 +4,11 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { BookOpen, GraduationCap, Users, Award } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,6 +17,9 @@ export function Header() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Hide header on annex portal pages
+  if (pathname.startsWith("/annex")) return null;
 
   return (
     <motion.header

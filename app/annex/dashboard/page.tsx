@@ -80,14 +80,14 @@ export default function DashboardPage() {
 
         {/* Active Users Card */}
         <Card3D className="bg-white p-6 flex items-start gap-4 border border-slate-200 shadow-sm">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
             <UserCheck className="w-6 h-6" />
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest">Active Accounts</p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-bold text-slate-900">{stats?.activeUsers || 0}</p>
-              <span className="text-xs font-bold text-emerald-600">Verified</span>
+              <span className="text-xs font-bold text-indigo-600">Verified</span>
             </div>
           </div>
         </Card3D>
