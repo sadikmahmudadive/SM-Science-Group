@@ -5,6 +5,22 @@ import { useState, useEffect } from "react";
 import { Plus, User, Mail, ShieldAlert, GraduationCap, X, Check, Search, Edit2, Trash2 } from "lucide-react";
 import { UserProfile, subscribeToUsers, createUserProfile, updateUserProfile, deleteUserProfile } from "@/lib/users";
 
+const CLASSES = [
+  { value: "00", label: "KG" },
+  { value: "01", label: "Play" },
+  { value: "02", label: "Nursery" },
+  { value: "03", label: "Class-1" },
+  { value: "04", label: "Class-2" },
+  { value: "05", label: "Class-3" },
+  { value: "06", label: "Class-4" },
+  { value: "07", label: "Class-5" },
+  { value: "08", label: "Class-6" },
+  { value: "09", label: "Class-7" },
+  { value: "10", label: "Class-8" },
+  { value: "11", label: "Class-9" },
+  { value: "12", label: "Class-10" },
+];
+
 export default function ManageUsersPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -12,7 +28,14 @@ export default function ManageUsersPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
-  const [newUser, setNewUser] = useState({ name: "", email: "", role: "student" as "student" | "teacher" | "admin" | "super-admin" });
+  const [newUser, setNewUser] = useState({ 
+    name: "", 
+    email: "", 
+    role: "student" as "student" | "teacher" | "admin" | "super-admin",
+    studentType: "S",
+    studentYear: new Date().getFullYear().toString(),
+    studentClass: "00"
+  });
   const [editUser, setEditUser] = useState({ name: "", email: "", role: "student" as "student" | "teacher" | "admin" | "super-admin", status: "pending" as "active" | "pending" });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,21 +52,53 @@ export default function ManageUsersPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const idPrefix = newUser.role === "student" ? "STD" : "TCH";
-      const systemId = `${idPrefix}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
-      const tempUid = `user_${Date.now()}`;
+      let systemId = "";
+      if (newUser.role === "student") {
+        const prefix = `${newUser.studentType}${newUser.studentYear}${newUser.studentClass}`;
+        
+        // Find highest serial for this prefix
+        const existingUsers = users.filter(u => u.systemId && u.systemId.startsWith(prefix));
+        let maxSerial = 0;
+        existingUsers.forEach(u => {
+          const serialStr = u.systemId.substring(prefix.length);
+          const serial = parseInt(serialStr, 10);
+          if (!isNaN(serial) && serial > maxSerial) {
+            maxSerial = serial;
+          }
+        });
+        
+        const nextSerial = (maxSerial + 1).toString().padStart(2, '0');
+        systemId = `${prefix}${nextSerial}`;
+      } else {
+        const idPrefix = "TCH";
+        systemId = `${idPrefix}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+      }
 
-      await createUserProfile({
+      const tempUid = `user_${Date.now()}`;
+      const generatedEmail = `${systemId.toLowerCase()}@sms.com`;
+
+      const userPayload: any = {
         uid: tempUid,
-        email: newUser.email,
+        email: generatedEmail,
         displayName: newUser.name,
         role: newUser.role,
         status: "pending",
         systemId: systemId
-      });
+      };
+
+      if (newUser.role === "student") {
+        userPayload.studentType = newUser.studentType;
+        userPayload.enrollmentYear = newUser.studentYear;
+        userPayload.classCode = newUser.studentClass;
+      }
+
+      await createUserProfile(userPayload);
 
       setIsModalOpen(false);
-      setNewUser({ name: "", email: "", role: "student" });
+      setNewUser({ 
+        name: "", email: "", role: "student", 
+        studentType: "S", studentYear: new Date().getFullYear().toString(), studentClass: "00" 
+      });
     } catch (error) {
       console.error("Failed to create user:", error);
       alert("Error creating user.");
@@ -242,18 +297,44 @@ export default function ManageUsersPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-bold text-slate-700">Email Address</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <input
-                      type="email" required
-                      value={newUser.email} onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                      className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                      placeholder="Provide an email for login"
-                    />
-                  </div>
-                </div>
+                {newUser.role === 'student' && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4 pt-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-bold text-slate-700">Student Type</label>
+                        <select
+                          value={newUser.studentType}
+                          onChange={(e) => setNewUser({...newUser, studentType: e.target.value})}
+                          className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                        >
+                          <option value="S">School (S)</option>
+                          <option value="C">Coaching (C)</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-bold text-slate-700">Year</label>
+                        <input
+                          type="number"
+                          value={newUser.studentYear}
+                          onChange={(e) => setNewUser({...newUser, studentYear: e.target.value})}
+                          className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-slate-700">Class Assignment</label>
+                      <select
+                        value={newUser.studentClass}
+                        onChange={(e) => setNewUser({...newUser, studentClass: e.target.value})}
+                        className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                      >
+                        {CLASSES.map((cls) => (
+                          <option key={cls.value} value={cls.value}>{cls.label} ({cls.value})</option>
+                        ))}
+                      </select>
+                    </div>
+                  </motion.div>
+                )}
 
                 <div className="pt-4 border-t border-slate-100">
                   <button
