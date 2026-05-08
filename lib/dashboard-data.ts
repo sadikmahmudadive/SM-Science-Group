@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, limit, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { getDb } from './firebase';
 
 export interface ClassData {
@@ -80,3 +80,37 @@ export async function getStudentAssignments(classCode: string): Promise<Assignme
     return [];
   }
 }
+
+// --- ADMIN CLASS MANAGEMENT ---
+
+export async function getAllClasses(): Promise<ClassData[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const snap = await getDocs(collection(db, 'classes'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as ClassData));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+export async function createClass(data: Omit<ClassData, 'id'>): Promise<string> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  const docRef = await addDoc(collection(db, 'classes'), data);
+  return docRef.id;
+}
+
+export async function updateClass(id: string, data: Partial<ClassData>): Promise<void> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  await updateDoc(doc(db, 'classes', id), data);
+}
+
+export async function deleteClass(id: string): Promise<void> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  await deleteDoc(doc(db, 'classes', id));
+}
+

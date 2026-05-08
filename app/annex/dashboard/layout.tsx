@@ -93,6 +93,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const navItems = {
     admin: [
       { label: "Overview", icon: Layout, href: "/annex/dashboard" },
+      { label: "Manage Classes", icon: BookOpen, href: "/annex/dashboard/classes" },
       { label: "Manage Users", icon: Shield, href: "/annex/dashboard/users" },
       { label: "Announcements", icon: Megaphone, href: "/annex/dashboard/announcements" },
       { label: "Global Settings", icon: Settings, href: "/annex/dashboard/settings" },
