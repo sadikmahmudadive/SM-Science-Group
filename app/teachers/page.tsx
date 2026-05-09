@@ -2,9 +2,10 @@
 
 import { motion, useScroll, useTransform } from "motion/react";
 import Image from "next/image";
-import { Mail, Phone, Award, BookOpen, Users, Briefcase, Loader2 } from "lucide-react";
+import { Mail, Phone, Award, BookOpen, Users, Briefcase, Loader2, Sparkles } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getPublicTeachers, PublicTeacherProfile } from "@/lib/dashboard-data";
+import { Card3D } from "@/components/ui/Card3D";
 
 // Comprehensive teacher database organized by class and section
 const TEACHERS_DATA = {
@@ -72,48 +73,63 @@ function TeacherCard({ teacher }: { teacher: any }) {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-lg transition-shadow"
     >
-      <div className="relative aspect-square w-full bg-slate-100 overflow-hidden">
-        <Image
-          src={teacher.image}
-          alt={teacher.name}
-          fill
-          className="object-cover"
-          referrerPolicy="no-referrer"
-        />
-      </div>
-      
-      <div className="p-6">
-        <h3 className="text-lg font-bold text-slate-900 mb-1">{teacher.name}</h3>
-        <p className="text-indigo-600 font-medium text-sm mb-3">{teacher.role}</p>
+      <Card3D className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 group">
+        <div className="relative aspect-[4/5] w-full bg-slate-100 overflow-hidden">
+          <Image
+            src={teacher.image}
+            alt={teacher.name}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
+            <div className="flex gap-4">
+              <a href={`mailto:${teacher.email}`} className="p-3 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-colors">
+                <Mail className="w-5 h-5" />
+              </a>
+              <a href={`tel:${teacher.phone}`} className="p-3 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-colors">
+                <Phone className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
+        </div>
         
-        <div className="space-y-2 mb-4 text-sm">
-          <div className="flex items-center gap-2 text-slate-600">
-            <BookOpen className="w-4 h-4" />
-            <span>{teacher.subject}</span>
+        <div className="p-8">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 mb-1 font-display group-hover:text-indigo-600 transition-colors">{teacher.name}</h3>
+              <p className="text-indigo-600 font-bold text-xs uppercase tracking-widest">{teacher.role}</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-slate-600">
-            <Briefcase className="w-4 h-4" />
-            <span>{teacher.experience}</span>
+          
+          <div className="space-y-3 mb-6">
+            <div className="flex items-center gap-3 text-slate-600">
+              <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
+                <BookOpen className="w-4 h-4" />
+              </div>
+              <span className="text-sm font-medium">{teacher.subject}</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-600">
+              <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
+                <Briefcase className="w-4 h-4" />
+              </div>
+              <span className="text-sm font-medium">{teacher.experience} Experience</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-600">
+              <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
+                <Award className="w-4 h-4" />
+              </div>
+              <span className="text-sm font-medium">{teacher.specialization}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-slate-600">
-            <Award className="w-4 h-4" />
-            <span>{teacher.specialization}</span>
-          </div>
-        </div>
 
-        <div className="pt-4 border-t border-slate-200 space-y-2 text-sm">
-          <div className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 transition-colors">
-            <Mail className="w-4 h-4" />
-            <a href={`mailto:${teacher.email}`}>{teacher.email}</a>
-          </div>
-          <div className="flex items-center gap-2 text-slate-600">
-            <Phone className="w-4 h-4" />
-            <a href={`tel:${teacher.phone}`}>{teacher.phone}</a>
+          <div className="pt-6 border-t border-slate-100 grid grid-cols-2 gap-4">
+             <div className="text-[10px] uppercase tracking-tighter text-slate-400 font-bold mb-1">Contact Info</div>
+             <div className="col-span-2 text-sm text-slate-500 font-medium truncate">{teacher.email}</div>
           </div>
         </div>
-      </div>
+      </Card3D>
     </motion.div>
   );
 }
@@ -168,7 +184,13 @@ export default function TeachersPage() {
   const pageOpacity = useTransform(scrollYProgress, [0, 0.1, 0.9, 1], [0.8, 1, 1, 0.8]);
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-32 pb-24 overflow-hidden">
+    <div className="min-h-screen bg-[#f8fafc] pt-32 pb-24 overflow-hidden relative">
+      {/* Background Mesh Gradients */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full" />
+      </div>
+
       <motion.div 
         ref={containerRef}
         style={{ scale: pageScale, opacity: pageOpacity }}
@@ -178,35 +200,39 @@ export default function TeachersPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
+          className="text-center mb-16 relative"
         >
-          <h1 className="text-4xl md:text-5xl font-bold font-display text-slate-900 mb-4">
-            Our Faculty & Coaches
+          <div className="inline-flex items-center rounded-full border border-indigo-400/30 bg-indigo-500/10 backdrop-blur-sm px-5 py-2 text-sm font-bold text-indigo-600 mb-6 shadow-lg shadow-indigo-500/5 mx-auto">
+            <Sparkles className="mr-2 h-4 w-4 text-indigo-500" />
+            Our World-Class Educators
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold font-display text-slate-900 mb-6 tracking-tight">
+            Our Faculty & <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600">Coaches</span>
           </h1>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
             Meet our team of experienced educators and expert coaches dedicated to shaping the future leaders and achievers.
           </p>
         </motion.div>
 
         {/* Tab Navigation */}
-        <div className="flex justify-center mb-12">
-          <div className="flex bg-slate-200 p-2 rounded-full">
+        <div className="flex justify-center mb-20">
+          <div className="flex bg-slate-200/50 backdrop-blur-md p-1.5 rounded-[2rem] border border-slate-200 shadow-inner">
             <button
               onClick={() => setActiveTab("school")}
-              className={`px-8 py-3 rounded-full font-bold transition-all ${
+              className={`px-10 py-4 rounded-[1.75rem] font-bold text-sm uppercase tracking-widest transition-all duration-300 ${
                 activeTab === "school"
-                  ? "bg-white text-indigo-600 shadow-md"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-white text-indigo-600 shadow-xl shadow-indigo-500/10 scale-[1.02]"
+                  : "text-slate-500 hover:text-slate-800"
               }`}
             >
               SM Scholars
             </button>
             <button
               onClick={() => setActiveTab("academy")}
-              className={`px-8 py-3 rounded-full font-bold transition-all ${
+              className={`px-10 py-4 rounded-[1.75rem] font-bold text-sm uppercase tracking-widest transition-all duration-300 ${
                 activeTab === "academy"
-                  ? "bg-white text-indigo-600 shadow-md"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-white text-indigo-600 shadow-xl shadow-indigo-500/10 scale-[1.02]"
+                  : "text-slate-500 hover:text-slate-800"
               }`}
             >
               SM Academy
@@ -231,12 +257,19 @@ export default function TeachersPage() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
               >
-                <div className="mb-8">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Users className="w-6 h-6 text-indigo-600" />
-                    <h2 className="text-2xl md:text-3xl font-bold text-slate-900">{section.class}</h2>
+                <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200 pb-8">
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <Users className="w-6 h-6" />
+                      </div>
+                      <h2 className="text-3xl md:text-4xl font-bold text-slate-900 font-display">{section.class}</h2>
+                    </div>
+                    <p className="text-slate-500 font-medium">Expert faculty dedicated to foundational excellence.</p>
                   </div>
-                  <div className="h-1 w-20 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-full" />
+                  <div className="flex gap-2">
+                     <span className="px-4 py-2 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-full border border-indigo-100 uppercase tracking-tighter">Academic Year 2026</span>
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -256,12 +289,19 @@ export default function TeachersPage() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
               >
-                <div className="mb-8">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Award className="w-6 h-6 text-indigo-600" />
-                    <h2 className="text-2xl md:text-3xl font-bold text-slate-900">{section.section}</h2>
+                <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200 pb-8">
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <Award className="w-6 h-6" />
+                      </div>
+                      <h2 className="text-3xl md:text-4xl font-bold text-slate-900 font-display">{section.section}</h2>
+                    </div>
+                    <p className="text-slate-500 font-medium">Specialized coaches for competitive success.</p>
                   </div>
-                  <div className="h-1 w-20 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-full" />
+                  <div className="flex gap-2">
+                     <span className="px-4 py-2 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-full border border-indigo-100 uppercase tracking-tighter">Coaching Excellence</span>
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

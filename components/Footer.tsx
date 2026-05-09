@@ -2,16 +2,17 @@
 
 import Link from "next/link";
 import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Heart } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 const FOOTER_LINKS = {
   school: [
     { label: "About", href: "#" },
-    { label: "Scholars Program", href: "#scholars" },
+    { label: "Scholars Program", href: "/#scholars" },
     { label: "Curriculum", href: "#" },
     { label: "Admissions", href: "#" },
   ],
   academy: [
-    { label: "Academy Programs", href: "#academy" },
+    { label: "Academy Programs", href: "/#academy" },
     { label: "Coaching Classes", href: "#" },
     { label: "Results", href: "#" },
     { label: "Scholarships", href: "#" },
@@ -25,24 +26,29 @@ const FOOTER_LINKS = {
 };
 
 export function Footer() {
+  const pathname = usePathname();
+  const isTeachersPage = pathname === "/teachers";
+
   return (
     <footer className="bg-slate-900 text-slate-100 py-16">
       <div className="container px-4 md:px-6 mx-auto w-full max-w-7xl">
-        {/* Teachers Section */}
-        <div className="mb-16 pb-16 border-b border-slate-800">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-2xl font-bold font-display">Our Faculty</h3>
-            <Link 
-              href="/teachers" 
-              className="text-indigo-400 hover:text-indigo-300 font-medium text-sm flex items-center gap-2"
-            >
-              View All Teachers →
-            </Link>
+        {/* Teachers Section - Hidden on teachers page */}
+        {!isTeachersPage && (
+          <div className="mb-16 pb-16 border-b border-slate-800">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-2xl font-bold font-display">Our Faculty</h3>
+              <Link 
+                href="/teachers" 
+                className="text-indigo-400 hover:text-indigo-300 font-medium text-sm flex items-center gap-2"
+              >
+                View All Teachers →
+              </Link>
+            </div>
+            <p className="text-slate-400 mb-6 max-w-2xl">
+              Meet our experienced educators and expert coaches dedicated to excellence in education.
+            </p>
           </div>
-          <p className="text-slate-400 mb-6 max-w-2xl">
-            Meet our experienced educators and expert coaches dedicated to excellence in education.
-          </p>
-        </div>
+        )}
 
         {/* Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
