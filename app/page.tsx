@@ -7,25 +7,14 @@ import { useState, useRef } from "react";
 import { BookOpen, GraduationCap, ArrowRight, Sparkles, Binary, UserCircle2, ChevronDown } from "lucide-react";
 import { Card3D } from "@/components/ui/Card3D";
 import { VantaGlobe } from "@/components/ui/VantaGlobe";
+import { useEffect } from "react";
+import { getFeaturedTeachers, PublicTeacherProfile } from "@/lib/dashboard-data";
 
 const STAGGER_CHILD_VARIANTS = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
 };
 
-const SCHOLAR_TEACHERS = [
-  { id: 1, name: "Sarah Jenkins", subject: "Science & Biology", role: "Head of Science Dept.", image: "https://picsum.photos/seed/teacher1/400/400" },
-  { id: 2, name: "David Rahman", subject: "Mathematics", role: "Senior Math Teacher", image: "https://picsum.photos/seed/teacher2/400/400" },
-  { id: 3, name: "Ayesha Siddiqua", subject: "English Literature", role: "Class 8 Coordinator", image: "https://picsum.photos/seed/teacher3/400/400" },
-  { id: 4, name: "Michael Chang", subject: "Computer Science", role: "Tech Educator", image: "https://picsum.photos/seed/teacher4/400/400" },
-];
-
-const ACADEMY_TEACHERS = [
-  { id: 5, name: "Dr. Anisur Rahman", subject: "Higher Math & Physics", role: "Lead Instructor", image: "https://picsum.photos/seed/teacher5/400/400" },
-  { id: 6, name: "Nadia Islam", subject: "Chemistry", role: "Senior Coach", image: "https://picsum.photos/seed/teacher6/400/400" },
-  { id: 7, name: "Kamrul Hasan", subject: "Biology", role: "Medical Prep Guide", image: "https://picsum.photos/seed/teacher7/400/400" },
-  { id: 8, name: "Farhana Ahmed", subject: "Physics", role: "Engineering Prep Guide", image: "https://picsum.photos/seed/teacher8/400/400" },
-];
 
 export default function HomePage() {
   const heroRef = useRef<HTMLElement>(null);
@@ -67,7 +56,15 @@ export default function HomePage() {
 
   const { scrollYProgress } = useScroll();
   const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-  const [activeTeacherTab, setActiveTeacherTab] = useState<"scholars" | "academy">("scholars");
+  const [featuredTeachers, setFeaturedTeachers] = useState<PublicTeacherProfile[]>([]);
+
+  useEffect(() => {
+    async function loadTeachers() {
+      const data = await getFeaturedTeachers();
+      setFeaturedTeachers(data);
+    }
+    loadTeachers();
+  }, []);
 
   return (
     <div className="flex flex-col w-full overflow-hidden">
@@ -302,27 +299,12 @@ export default function HomePage() {
               <UserCircle2 className="mr-2 h-4 w-4" />
               Expert Mentorship
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold font-display text-slate-900 mb-4">Meet Our Teachers</h2>
-            <p className="text-slate-600 max-w-2xl mx-auto mb-10">Discover the passionate educators and expert instructors behind our academic success.</p>
-            
-            <div className="flex bg-slate-100 p-1.5 rounded-2xl max-w-sm mx-auto shadow-inner">
-              <button 
-                onClick={() => setActiveTeacherTab("scholars")}
-                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${activeTeacherTab === "scholars" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
-              >
-                School Faculty
-              </button>
-              <button 
-                onClick={() => setActiveTeacherTab("academy")}
-                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${activeTeacherTab === "academy" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
-              >
-                Academy Coaches
-              </button>
-            </div>
+            <h2 className="text-3xl md:text-5xl font-bold font-display text-slate-900 mb-4">Elite Faculty</h2>
+            <p className="text-slate-600 max-w-2xl mx-auto mb-10">Our most experienced and distinguished educators leading both school and academy programs.</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {(activeTeacherTab === "scholars" ? SCHOLAR_TEACHERS : ACADEMY_TEACHERS).map((teacher, index) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            {featuredTeachers.map((teacher, index) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -331,28 +313,46 @@ export default function HomePage() {
                 key={teacher.id}
                 className="group"
               >
-                <Card3D className="bg-white rounded-[2.5rem] p-5 border border-slate-100 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-indigo-100 group">
-                    <div className="relative aspect-square w-full rounded-[2rem] overflow-hidden mb-6 bg-slate-100">
+                <Card3D className="bg-white rounded-[2rem] p-4 border border-slate-100 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-indigo-100 group">
+                    <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden mb-5 bg-slate-100">
                     <Image
-                      src={teacher.image}
+                      src={teacher.image || "https://picsum.photos/seed/teacher/400/600"}
                       alt={teacher.name}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                       referrerPolicy="no-referrer"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 20vw"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
-                       <span className="text-white text-xs font-bold uppercase tracking-widest bg-white/20 backdrop-blur-md w-fit px-3 py-1 rounded-full border border-white/30">Profile Details</span>
+                    <div className="absolute top-3 left-3">
+                        <span className="text-[8px] font-black uppercase tracking-widest bg-white/90 backdrop-blur-sm text-indigo-600 px-2 py-1 rounded-md border border-white shadow-sm">
+                            {teacher.category === 'school' ? 'Scholars' : 'Academy'}
+                        </span>
                     </div>
                   </div>
-                  <div className="px-2 pb-2 text-center">
-                    <p className="text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">{teacher.subject}</p>
-                    <h3 className="text-xl font-bold text-slate-900 font-display mb-1 group-hover:text-indigo-600 transition-colors">{teacher.name}</h3>
-                    <p className="text-slate-500 text-sm font-medium">{teacher.role}</p>
+                  <div className="px-1 pb-1 text-center">
+                    <p className="text-indigo-600 font-black text-[9px] uppercase tracking-[0.2em] mb-2">{teacher.subject}</p>
+                    <h3 className="text-lg font-bold text-slate-900 font-display mb-1 group-hover:text-indigo-600 transition-colors truncate px-2">{teacher.name}</h3>
+                    <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">{teacher.role}</p>
+                    <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-center gap-1">
+                        <Sparkles className="w-3 h-3 text-amber-400" />
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{teacher.experience} Experience</span>
+                    </div>
                   </div>
                 </Card3D>
               </motion.div>
             ))}
+          </div>
+          
+          <div className="mt-16 text-center">
+            <Link href="/teachers">
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-slate-800 transition-all"
+                >
+                    View All Faculty <ArrowRight className="w-4 h-4" />
+                </motion.button>
+            </Link>
           </div>
         </motion.div>
       </section>

@@ -57,6 +57,24 @@ export interface PublicTeacherProfile {
   joined: string; // e.g., "2018"
   category: 'school' | 'academy';
   section: string; // e.g., "Class 1-2" or "Mathematics Coaching"
+  isFeatured?: boolean;
+  priority?: number;
+}
+
+export interface GlobalSettings {
+  institutionName: string;
+  tagline: string;
+  email: string;
+  phone: string;
+  address: string;
+  academicYear: string;
+  socialLinks: {
+    facebook?: string;
+    twitter?: string;
+    instagram?: string;
+    youtube?: string;
+  };
+  logoUrl?: string;
 }
 
 export async function getTeacherClasses(teacherId: string): Promise<ClassData[]> {
@@ -154,6 +172,59 @@ export async function getPublicTeachers(): Promise<PublicTeacherProfile[]> {
   try {
     const snap = await getDocs(collection(db, 'publicTeachers'));
     return snap.docs.map(d => ({ id: d.id, ...d.data() } as PublicTeacherProfile));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+// --- GLOBAL SETTINGS ---
+
+export async function getGlobalSettings(): Promise<GlobalSettings | null> {
+  const db = getDb();
+  if (!db) return null;
+  try {
+    const snap = await getDocs(collection(db, 'settings'));
+    if (snap.empty) return null;
+    return snap.docs[0].data() as GlobalSettings;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
+export async function updateGlobalSettings(data: GlobalSettings): Promise<void> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  const snap = await getDocs(collection(db, 'settings'));
+  if (snap.empty) {
+    await addDoc(collection(db, 'settings'), data);
+  } else {
+    const docId = snap.docs[0].id;
+    await updateDoc(doc(db, 'settings', docId), data as any);
+  }
+}
+
+export async function getFeaturedTeachers(): Promise<PublicTeacherProfile[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const snap = await getDocs(collection(db, 'publicTeachers'));
+    const all = snap.docs.map(d => ({ id: d.id, ...d.data() } as PublicTeacherProfile));
+    
+    // 1. Filter for featured teachers and sort by priority
+    const featured = all
+      .filter(t => t.isFeatured)
+      .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+    if (featured.length > 0) {
+      return featured.slice(0, 5);
+    }
+
+    // 2. Fallback: If no featured teachers, sort by seniority (joined year)
+    return all
+      .sort((a, b) => parseInt(a.joined || "9999") - parseInt(b.joined || "9999"))
+      .slice(0, 5);
   } catch (e) {
     console.error(e);
     return [];
