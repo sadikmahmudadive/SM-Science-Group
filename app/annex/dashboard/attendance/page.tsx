@@ -26,6 +26,7 @@ import {
   ClassData
 } from "@/lib/dashboard-data";
 import { useAuth } from "@/lib/auth-context";
+import { getUserProfile, UserProfile } from "@/lib/users";
 import { Card3D } from "@/components/ui/Card3D";
 
 export default function AttendancePage() {
@@ -44,14 +45,19 @@ export default function AttendancePage() {
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [teacherProfile, setTeacherProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    async function loadClasses() {
+    async function loadTeacherData() {
       if (!user?.uid) return;
-      const classes = await getTeacherClasses(user.uid);
+      const [classes, profile] = await Promise.all([
+        getTeacherClasses(user.uid),
+        getUserProfile(user.uid)
+      ]);
       setTeacherClasses(classes);
+      setTeacherProfile(profile);
     }
-    loadClasses();
+    loadTeacherData();
   }, [user?.uid]);
 
   useEffect(() => {
@@ -59,10 +65,12 @@ export default function AttendancePage() {
       setLoading(true);
       try {
         let studentList = [];
+        const personType = (teacherProfile as any)?.personType as 'S' | 'C' | undefined;
+
         if (selectedClassCode === "global") {
-          studentList = await getAllStudents();
+          studentList = await getAllStudents(personType);
         } else {
-          studentList = await getStudentsByClassCode(selectedClassCode);
+          studentList = await getStudentsByClassCode(selectedClassCode, personType);
         }
         
         const existingAttendance = await getAttendanceByDate(selectedClassId || "global", date);
@@ -90,7 +98,7 @@ export default function AttendancePage() {
     }
 
     loadData();
-  }, [selectedClassCode, selectedClassId, date]);
+  }, [selectedClassCode, selectedClassId, date, teacherProfile]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendance(prev => ({

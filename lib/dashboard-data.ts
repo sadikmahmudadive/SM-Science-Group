@@ -252,11 +252,14 @@ export async function deletePublicTeacher(id: string): Promise<void> {
 
 // --- ATTENDANCE SYSTEM ---
 
-export async function getStudentsByClassCode(classCode: string): Promise<any[]> {
+export async function getStudentsByClassCode(classCode: string, personType?: 'S' | 'C'): Promise<any[]> {
   const db = getDb();
   if (!db) return [];
   try {
-    const q = query(collection(db, 'users'), where('role', '==', 'student'), where('classCode', '==', classCode));
+    let q = query(collection(db, 'users'), where('role', '==', 'student'), where('classCode', '==', classCode));
+    if (personType) {
+      q = query(q, where('personType', '==', personType));
+    }
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
   } catch (e) {
@@ -265,11 +268,14 @@ export async function getStudentsByClassCode(classCode: string): Promise<any[]> 
   }
 }
 
-export async function getAllStudents(): Promise<any[]> {
+export async function getAllStudents(personType?: 'S' | 'C'): Promise<any[]> {
   const db = getDb();
   if (!db) return [];
   try {
-    const q = query(collection(db, 'users'), where('role', '==', 'student'));
+    let q = query(collection(db, 'users'), where('role', '==', 'student'));
+    if (personType) {
+      q = query(q, where('personType', '==', personType));
+    }
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
   } catch (e) {
