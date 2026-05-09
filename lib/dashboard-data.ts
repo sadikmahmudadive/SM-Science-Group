@@ -8,6 +8,7 @@ export interface ClassData {
   classCode: string;
   schedule: string;
   studentCount: number;
+  classType?: 'S' | 'C'; // 'S' for School, 'C' for Coaching
 }
 
 export interface Assignment {

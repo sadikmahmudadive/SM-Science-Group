@@ -51,7 +51,8 @@ export default function ClassesPage() {
     routineDays: [] as string[],
     routineStartTime: "10:00",
     routineEndTime: "11:30",
-    studentCount: 0
+    studentCount: 0,
+    classType: "S" as "S" | "C"
   });
 
   const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -122,18 +123,20 @@ export default function ClassesPage() {
         routineDays,
         routineStartTime,
         routineEndTime,
-        studentCount: cls.studentCount
+        studentCount: cls.studentCount,
+        classType: cls.classType || "S"
       });
     } else {
       setEditingClass(null);
       setFormData({
         name: "",
         classCode: "00",
-        teacherId: teachers.length > 0 ? teachers[0].uid : "",
+        teacherId: "",
         routineDays: [],
         routineStartTime: "10:00",
         routineEndTime: "11:30",
-        studentCount: 0
+        studentCount: 0,
+        classType: "S"
       });
     }
     setIsModalOpen(true);
@@ -160,7 +163,8 @@ export default function ClassesPage() {
         classCode: formData.classCode,
         teacherId: formData.teacherId,
         schedule: finalSchedule,
-        studentCount: formData.studentCount
+        studentCount: formData.studentCount,
+        classType: formData.classType
       };
 
       if (editingClass) {
@@ -257,7 +261,14 @@ export default function ClassesPage() {
                 </div>
 
                 <h3 className="text-xl font-bold text-slate-900 mb-1 relative z-10">{cls.name}</h3>
-                <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-6 relative z-10">{classNameLabel}</p>
+                <div className="flex items-center gap-2 mb-6 relative z-10">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border ${
+                    cls.classType === 'C' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                  }`}>
+                    {cls.classType === 'C' ? 'Coaching' : 'School'}
+                  </span>
+                  <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest">{classNameLabel}</p>
+                </div>
 
                 <div className="space-y-4 flex-1 relative z-10">
                   <div className="flex items-center gap-3 text-sm text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -303,6 +314,20 @@ export default function ClassesPage() {
 
               <form onSubmit={handleSubmit} className="p-6 space-y-5">
                 <div className="space-y-2">
+                  <label className="block text-sm font-bold text-slate-700">Class Type</label>
+                  <div className="flex gap-4">
+                    <label className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-colors ${formData.classType === 'S' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:bg-slate-50'}`}>
+                      <input type="radio" name="classType" value="S" checked={formData.classType === 'S'} onChange={() => setFormData({...formData, classType: 'S', teacherId: ''})} className="sr-only" />
+                      <span className={`text-sm font-bold ${formData.classType === 'S' ? 'text-emerald-900' : 'text-slate-600'}`}>School Class</span>
+                    </label>
+                    <label className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-colors ${formData.classType === 'C' ? 'border-amber-500 bg-amber-50' : 'border-slate-200 hover:bg-slate-50'}`}>
+                      <input type="radio" name="classType" value="C" checked={formData.classType === 'C'} onChange={() => setFormData({...formData, classType: 'C', teacherId: ''})} className="sr-only" />
+                      <span className={`text-sm font-bold ${formData.classType === 'C' ? 'text-amber-900' : 'text-slate-600'}`}>Coaching Class</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
                   <label className="block text-sm font-bold text-slate-700">Class Name / Subject</label>
                   <input
                     type="text" required
@@ -343,11 +368,18 @@ export default function ClassesPage() {
                     onChange={e => setFormData({...formData, teacherId: e.target.value})}
                     className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                   >
-                    <option value="" disabled>Select a teacher...</option>
-                    {teachers.map((t) => (
-                      <option key={t.uid} value={t.uid}>{t.displayName} ({t.systemId})</option>
-                    ))}
+                    <option value="" disabled>Select a {formData.classType === 'S' ? 'School' : 'Coaching'} teacher...</option>
+                    {teachers
+                      .filter(t => (t as any).personType === formData.classType)
+                      .map((t) => (
+                        <option key={t.uid} value={t.uid}>{t.displayName} ({t.systemId})</option>
+                      ))}
                   </select>
+                  {teachers.filter(t => (t as any).personType === formData.classType).length === 0 && (
+                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> No teachers found for the selected type.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-4 border border-slate-200 p-4 rounded-xl bg-slate-50/50">
