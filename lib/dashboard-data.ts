@@ -194,6 +194,19 @@ export async function getStudentsByClassCode(classCode: string): Promise<any[]> 
   }
 }
 
+export async function getAllStudents(): Promise<any[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const q = query(collection(db, 'users'), where('role', '==', 'student'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
 export async function submitAttendance(record: AttendanceRecord): Promise<string> {
   const db = getDb();
   if (!db) throw new Error('Firebase not configured');
