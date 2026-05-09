@@ -24,6 +24,7 @@ import { Suspense, useState, useEffect } from "react";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { useAuth } from "@/lib/auth-context";
 import { getUserProfile, UserProfile } from "@/lib/users";
+import { getGlobalSettings, GlobalSettings } from "@/lib/dashboard-data";
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -32,6 +33,15 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const [loggingOut, setLoggingOut] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [globalSettings, setGlobalSettings] = useState<GlobalSettings | null>(null);
+
+  useEffect(() => {
+    async function loadSettings() {
+      const settings = await getGlobalSettings();
+      setGlobalSettings(settings);
+    }
+    loadSettings();
+  }, []);
 
   useEffect(() => {
     async function loadProfile() {
@@ -122,9 +132,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="h-20 flex items-center px-6 border-b border-slate-200">
           <Link href="/annex/dashboard" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-sm shadow-sm">
-              <Binary className="w-5 h-5" />
+              <span className="text-[10px] font-black">{globalSettings?.institutionName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || "SM"}</span>
             </div>
-            <span className="font-black text-indigo-900 tracking-tight text-xl italic">SM-ANNEX</span>
+            <span className="font-black text-indigo-900 tracking-tight text-xl italic uppercase">
+              {globalSettings?.institutionName.split(' ')[0] || "SM"}-ANNEX
+            </span>
           </Link>
         </div>
         

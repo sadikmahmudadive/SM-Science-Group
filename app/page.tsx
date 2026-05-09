@@ -8,7 +8,7 @@ import { BookOpen, GraduationCap, ArrowRight, Sparkles, Binary, UserCircle2, Che
 import { Card3D } from "@/components/ui/Card3D";
 import { VantaGlobe } from "@/components/ui/VantaGlobe";
 import { useEffect } from "react";
-import { getFeaturedTeachers, PublicTeacherProfile } from "@/lib/dashboard-data";
+import { getFeaturedTeachers, PublicTeacherProfile, getGlobalSettings, GlobalSettings } from "@/lib/dashboard-data";
 
 const STAGGER_CHILD_VARIANTS = {
   hidden: { opacity: 0, y: 20 },
@@ -57,13 +57,18 @@ export default function HomePage() {
   const { scrollYProgress } = useScroll();
   const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const [featuredTeachers, setFeaturedTeachers] = useState<PublicTeacherProfile[]>([]);
+  const [globalSettings, setGlobalSettings] = useState<GlobalSettings | null>(null);
 
   useEffect(() => {
-    async function loadTeachers() {
-      const data = await getFeaturedTeachers();
-      setFeaturedTeachers(data);
+    async function loadData() {
+      const [teachers, settings] = await Promise.all([
+        getFeaturedTeachers(),
+        getGlobalSettings()
+      ]);
+      setFeaturedTeachers(teachers);
+      setGlobalSettings(settings);
     }
-    loadTeachers();
+    loadData();
   }, []);
 
   return (
@@ -118,11 +123,11 @@ export default function HomePage() {
 
             <motion.h1
               variants={STAGGER_CHILD_VARIANTS}
-              className="text-5xl md:text-8xl lg:text-9xl font-black tracking-tighter text-white font-display leading-[0.9] text-glow"
+              className="text-5xl md:text-8xl lg:text-9xl font-black tracking-tighter text-white font-display leading-[0.9] text-glow uppercase"
             >
-              SM SCIENCE <br />
+              {globalSettings?.institutionName.split(' ').slice(0, -1).join(' ') || "SM SCIENCE"} <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-violet-400">
-                GROUP
+                {globalSettings?.institutionName.split(' ').pop() || "GROUP"}
               </span>
             </motion.h1>
 
@@ -130,7 +135,7 @@ export default function HomePage() {
               variants={STAGGER_CHILD_VARIANTS}
               className="max-w-[700px] text-lg md:text-xl text-slate-300/80 leading-relaxed font-medium"
             >
-              Excellence from foundation to mastery. Discover our school programs, dedicated coaching, and state-of-the-art smart learning portal.
+              {globalSettings?.tagline || "Excellence from foundation to mastery. Discover our school programs, dedicated coaching, and state-of-the-art smart learning portal."}
             </motion.p>
 
             <motion.div variants={STAGGER_CHILD_VARIANTS} className="flex flex-col sm:flex-row gap-6 pt-4">
@@ -519,54 +524,6 @@ export default function HomePage() {
         </motion.div>
       </section>
       
-      {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-16">
-        <div className="container px-4 md:px-6 mx-auto w-full max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="col-span-1 md:col-span-2">
-            <Link href="/" className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center">
-                <span className="font-bold text-lg">SM</span>
-              </div>
-              <span className="font-bold text-2xl text-white font-display">Science Group</span>
-            </Link>
-            <p className="max-w-md mb-8 leading-relaxed text-slate-400">Leading the future of education with innovative tools, dedicated mentorship, and comprehensive digital infrastructure.</p>
-          </div>
-          <div>
-            <h4 className="text-white font-semibold mb-6 text-lg">Services</h4>
-            <ul className="space-y-3">
-              <li><Link href="#scholars" className="hover:text-indigo-400 transition-colors flex items-center gap-2"><ArrowRight className="w-3 h-3"/> SM Scholars</Link></li>
-              <li><Link href="#academy" className="hover:text-indigo-400 transition-colors flex items-center gap-2"><ArrowRight className="w-3 h-3"/> SM Science Academy</Link></li>
-              <li><Link href="#teachers" className="hover:text-indigo-400 transition-colors flex items-center gap-2"><ArrowRight className="w-3 h-3"/> Our Teachers</Link></li>
-              <li><Link href="/annex/login" className="hover:text-indigo-400 transition-colors flex items-center gap-2"><ArrowRight className="w-3 h-3"/> SM-Annex Portal</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-semibold mb-6 text-lg">Contact Us</h4>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-3">
-                <div className="mt-1 w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-                <span>123 Education City, Road 4<br/>Dhaka, Bangladesh</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-                <span>info@smsciencegroup.com</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-                <span>+880 1234 567890</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div className="container px-4 md:px-6 mx-auto w-full max-w-7xl mt-16 pt-8 border-t border-slate-800 text-sm flex flex-col md:flex-row justify-between items-center gap-4">
-          <p>© {new Date().getFullYear()} SM Science Group. All rights reserved.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white transition-colors">Cookie Policy</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
