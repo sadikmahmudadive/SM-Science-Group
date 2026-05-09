@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Plus, Edit2, Trash2, X, Image as ImageIcon, Briefcase, Mail, Phone, BookOpen, Loader2 } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Image as ImageIcon, Briefcase, Mail, Phone, BookOpen, Loader2, Calendar } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { getUserProfile, UserProfile } from "@/lib/users";
 import { getPublicTeachers, createPublicTeacher, updatePublicTeacher, deletePublicTeacher, PublicTeacherProfile } from "@/lib/dashboard-data";
@@ -37,6 +37,7 @@ export default function ManageStaffPage() {
     email: "",
     image: "",
     specialization: "",
+    joined: "",
     category: "school",
     section: ""
   });
@@ -64,7 +65,19 @@ export default function ManageStaffPage() {
   const handleOpenModal = (s?: PublicTeacherProfile) => {
     if (s) {
       setEditingStaff(s);
-      setFormData({ ...s });
+      setFormData({ 
+        name: s.name || "",
+        subject: s.subject || "",
+        role: s.role || "",
+        experience: s.experience || "",
+        phone: s.phone || "",
+        email: s.email || "",
+        image: s.image || "",
+        specialization: s.specialization || "",
+        joined: s.joined || "",
+        category: s.category || "school",
+        section: s.section || ""
+      });
     } else {
       setEditingStaff(null);
       setFormData({
@@ -76,6 +89,7 @@ export default function ManageStaffPage() {
         email: "",
         image: "https://picsum.photos/seed/new/400/400",
         specialization: "",
+        joined: new Date().getFullYear().toString(),
         category: "school",
         section: "Class 1-2"
       });
@@ -220,6 +234,10 @@ export default function ManageStaffPage() {
                   <Phone className="w-4 h-4 text-slate-400 flex-shrink-0" />
                   <span>{member.phone}</span>
                 </div>
+                <div className="flex items-center gap-3 text-slate-600">
+                  <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                  <span className="italic">Since {member.joined || "N/A"}</span>
+                </div>
               </div>
 
               <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between relative z-10">
@@ -255,23 +273,27 @@ export default function ManageStaffPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="block text-sm font-bold text-slate-700">Full Name</label>
-                      <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. Dr. Jane Doe" />
+                      <input type="text" required value={formData.name || ""} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. Dr. Jane Doe" />
                     </div>
                     <div className="space-y-2">
                       <label className="block text-sm font-bold text-slate-700">Role</label>
-                      <input type="text" required value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. Head of Science Dept." />
+                      <input type="text" required value={formData.role || ""} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. Head of Science Dept." />
                     </div>
                     <div className="space-y-2">
                       <label className="block text-sm font-bold text-slate-700">Subject</label>
-                      <input type="text" required value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. Physics & Chemistry" />
+                      <input type="text" required value={formData.subject || ""} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. Physics & Chemistry" />
                     </div>
                     <div className="space-y-2">
                       <label className="block text-sm font-bold text-slate-700">Specialization</label>
-                      <input type="text" required value={formData.specialization} onChange={e => setFormData({...formData, specialization: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. Organic Chemistry" />
+                      <input type="text" required value={formData.specialization || ""} onChange={e => setFormData({...formData, specialization: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. Organic Chemistry" />
                     </div>
                     <div className="space-y-2">
                       <label className="block text-sm font-bold text-slate-700">Experience</label>
-                      <input type="text" required value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. 10 years" />
+                      <input type="text" required value={formData.experience || ""} onChange={e => setFormData({...formData, experience: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. 10 years" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-slate-700">Joining Year</label>
+                      <input type="text" required value={formData.joined || ""} onChange={e => setFormData({...formData, joined: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. 2018" />
                     </div>
                     <div className="space-y-2">
                       <label className="block text-sm font-bold text-slate-700">Profile Photo</label>
@@ -302,11 +324,11 @@ export default function ManageStaffPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="block text-sm font-bold text-slate-700">Email Contact</label>
-                      <input type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" />
+                      <input type="email" required value={formData.email || ""} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" />
                     </div>
                     <div className="space-y-2">
                       <label className="block text-sm font-bold text-slate-700">Phone Contact</label>
-                      <input type="text" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" />
+                      <input type="text" required value={formData.phone || ""} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500 text-sm" />
                     </div>
                     <div className="space-y-2">
                       <label className="block text-sm font-bold text-slate-700">Category</label>

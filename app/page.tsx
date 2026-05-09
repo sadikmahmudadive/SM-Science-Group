@@ -79,6 +79,24 @@ export default function HomePage() {
         {/* Radial overlay for depth */}
         <div className="absolute inset-0 z-[1] pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(2,6,23,0.4)_70%,rgba(2,6,23,0.85)_100%)]" />
 
+        {/* Floating elements for depth */}
+        <motion.div 
+          animate={{ 
+            y: [0, -20, 0],
+            rotate: [0, 10, 0]
+          }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[20%] left-[15%] w-12 h-12 bg-indigo-500/20 backdrop-blur-xl border border-indigo-400/30 rounded-2xl z-10 hidden lg:block" 
+        />
+        <motion.div 
+          animate={{ 
+            y: [0, 20, 0],
+            rotate: [0, -10, 0]
+          }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-[20%] right-[15%] w-16 h-16 bg-blue-500/20 backdrop-blur-xl border border-blue-400/30 rounded-full z-10 hidden lg:block" 
+        />
+
         {/* Scroll-driven hero content */}
         <motion.div
           style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
@@ -96,45 +114,45 @@ export default function HomePage() {
             }}
             className="flex flex-col items-center text-center space-y-8"
           >
-            <motion.div variants={STAGGER_CHILD_VARIANTS} className="inline-flex items-center rounded-full border border-indigo-400/30 bg-indigo-500/10 backdrop-blur-sm px-5 py-2 text-sm font-medium text-indigo-300 mb-2 shadow-lg shadow-indigo-500/5">
+            <motion.div variants={STAGGER_CHILD_VARIANTS} className="inline-flex items-center rounded-full border border-indigo-400/30 bg-indigo-500/10 backdrop-blur-sm px-5 py-2 text-sm font-bold text-indigo-300 mb-2 shadow-lg shadow-indigo-500/5">
               <Sparkles className="mr-2 h-4 w-4 text-indigo-400" />
               Empowering the Next Generation
             </motion.div>
 
             <motion.h1
               variants={STAGGER_CHILD_VARIANTS}
-              className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white font-display drop-shadow-2xl"
+              className="text-5xl md:text-8xl lg:text-9xl font-black tracking-tighter text-white font-display leading-[0.9] text-glow"
             >
-              Welcome to{" "}
+              SM SCIENCE <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-violet-400">
-                SM Science Group
+                GROUP
               </span>
             </motion.h1>
 
             <motion.p
               variants={STAGGER_CHILD_VARIANTS}
-              className="max-w-[700px] text-lg md:text-xl text-slate-300/90 leading-relaxed"
+              className="max-w-[700px] text-lg md:text-xl text-slate-300/80 leading-relaxed font-medium"
             >
               Excellence from foundation to mastery. Discover our school programs, dedicated coaching, and state-of-the-art smart learning portal.
             </motion.p>
 
-            <motion.div variants={STAGGER_CHILD_VARIANTS} className="flex flex-col sm:flex-row gap-4 pt-4">
+            <motion.div variants={STAGGER_CHILD_VARIANTS} className="flex flex-col sm:flex-row gap-6 pt-4">
               <Link href="#services">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, y: -5 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-indigo-500 text-white px-8 py-4 rounded-full font-semibold shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 w-full sm:w-auto hover:bg-indigo-400 transition-colors"
+                  className="bg-indigo-600 text-white px-10 py-5 rounded-2xl font-bold shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-3 w-full sm:w-auto hover:bg-indigo-500 transition-all"
                 >
-                  Explore Scholars <ArrowRight className="w-4 h-4" />
+                  Explore Scholars <ArrowRight className="w-5 h-5" />
                 </motion.button>
               </Link>
-              <Link href="#academy">
+              <Link href="/annex/login">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, y: -5 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-white/10 text-white border border-white/20 backdrop-blur-sm px-8 py-4 rounded-full font-semibold shadow-sm hover:bg-white/20 transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
+                  className="bg-white/5 text-white border border-white/10 backdrop-blur-md px-10 py-5 rounded-2xl font-bold shadow-sm hover:bg-white/10 transition-all flex items-center justify-center gap-3 w-full sm:w-auto"
                 >
-                  Discover Academy
+                  Student Portal
                 </motion.button>
               </Link>
             </motion.div>
@@ -160,19 +178,25 @@ export default function HomePage() {
 
       {/* Services Section */}
       <section ref={servicesRef} className="py-32 bg-white relative z-10 overflow-hidden" id="services">
+        {/* Modern grid background */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+
         <motion.div 
           style={{ scale: servicesScale, opacity: servicesOpacity }}
-          className="container px-4 md:px-6 mx-auto w-full max-w-7xl"
+          className="container px-4 md:px-6 mx-auto w-full max-w-7xl relative z-10"
         >
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-16"
+            className="text-center mb-20"
           >
-            <h2 className="text-3xl md:text-5xl font-bold font-display text-slate-900 mb-4">Our Ecosystem</h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">Comprehensive educational infrastructure tailored for modern learning.</p>
+            <div className="inline-flex items-center rounded-full bg-indigo-50 px-4 py-1.5 text-xs font-bold text-indigo-600 mb-4 uppercase tracking-widest border border-indigo-100">
+              Our Infrastructure
+            </div>
+            <h2 className="text-4xl md:text-6xl font-bold font-display text-slate-900 mb-6 tracking-tight">The Educational <span className="text-indigo-600">Ecosystem</span></h2>
+            <p className="text-slate-500 max-w-2xl mx-auto text-lg">Comprehensive educational infrastructure tailored for modern learning.</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 md:grid-rows-6 gap-6 min-h-[800px]">
@@ -236,20 +260,23 @@ export default function HomePage() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="md:col-span-7 md:row-span-3"
             >
-              <Card3D className="h-full bg-cyan-50 border-cyan-100 p-8 shadow-inner flex flex-col">
+              <Card3D className="h-full bg-indigo-600 border-indigo-500 p-8 shadow-2xl flex flex-col relative overflow-hidden">
+                {/* Decorative glow */}
+                <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-white/20 rounded-full blur-[80px] pointer-events-none" />
+                
                 <div className="flex flex-col h-full z-10 relative">
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-14 h-14 bg-cyan-100 text-cyan-600 rounded-2xl flex items-center justify-center shadow-sm">
+                    <div className="w-14 h-14 bg-white/20 text-white rounded-2xl flex items-center justify-center shadow-sm backdrop-blur-md border border-white/30">
                       <Binary className="w-7 h-7" />
                     </div>
-                    <span className="text-[10px] px-2 py-1 bg-cyan-200 text-cyan-700 font-bold rounded uppercase">Live Portal</span>
+                    <span className="text-[10px] px-3 py-1 bg-white/20 text-white font-black rounded-full uppercase border border-white/30 backdrop-blur-md">Smart Portal</span>
                   </div>
-                  <h3 className="text-3xl font-bold font-display mb-3 text-cyan-900">SM-Annex</h3>
-                  <p className="text-cyan-700/80 mb-6 flex-grow leading-relaxed max-w-md">
-                    Smart portal for attendance, real-time grading, performance tracking, and parent-teacher seamless communication.
+                  <h3 className="text-3xl font-bold font-display mb-3 text-white">SM-Annex Portal</h3>
+                  <p className="text-indigo-100 mb-6 flex-grow leading-relaxed max-w-md">
+                    The ultimate smart portal for real-time tracking, automated grading, and seamless institutional communication.
                   </p>
-                  <Link href="/annex" className="text-cyan-700 font-bold flex items-center gap-2 group hover:gap-3 transition-all bg-cyan-200/50 hover:bg-cyan-200 px-6 py-3 rounded-xl w-fit">
-                    Access Portal <ArrowRight className="w-4 h-4" />
+                  <Link href="/annex/login" className="text-indigo-600 font-bold flex items-center gap-2 group hover:gap-3 transition-all bg-white hover:bg-indigo-50 px-8 py-4 rounded-xl w-fit shadow-xl">
+                    Access System <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
               </Card3D>
@@ -304,24 +331,26 @@ export default function HomePage() {
                 key={teacher.id}
                 className="group"
               >
-                <div className="bg-slate-50 rounded-[2rem] p-4 border border-slate-100 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:border-indigo-100">
-                    <div className="relative aspect-square w-full rounded-3xl overflow-hidden mb-6 bg-slate-200">
+                <Card3D className="bg-white rounded-[2.5rem] p-5 border border-slate-100 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-indigo-100 group">
+                    <div className="relative aspect-square w-full rounded-[2rem] overflow-hidden mb-6 bg-slate-100">
                     <Image
                       src={teacher.image}
                       alt={teacher.name}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
                       referrerPolicy="no-referrer"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
+                       <span className="text-white text-xs font-bold uppercase tracking-widest bg-white/20 backdrop-blur-md w-fit px-3 py-1 rounded-full border border-white/30">Profile Details</span>
+                    </div>
                   </div>
                   <div className="px-2 pb-2 text-center">
-                    <p className="text-indigo-600 font-bold text-xs uppercase tracking-wider mb-2">{teacher.subject}</p>
-                    <h3 className="text-xl font-bold text-slate-900 font-display mb-1">{teacher.name}</h3>
-                    <p className="text-slate-500 text-sm">{teacher.role}</p>
+                    <p className="text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">{teacher.subject}</p>
+                    <h3 className="text-xl font-bold text-slate-900 font-display mb-1 group-hover:text-indigo-600 transition-colors">{teacher.name}</h3>
+                    <p className="text-slate-500 text-sm font-medium">{teacher.role}</p>
                   </div>
-                </div>
+                </Card3D>
               </motion.div>
             ))}
           </div>

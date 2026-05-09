@@ -2,7 +2,7 @@
 
 import { motion, useScroll, useTransform } from "motion/react";
 import Image from "next/image";
-import { Mail, Phone, Award, BookOpen, Users, Briefcase, Loader2, Sparkles } from "lucide-react";
+import { Mail, Phone, Award, BookOpen, Users, Briefcase, Loader2, Sparkles, Calendar } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getPublicTeachers, PublicTeacherProfile } from "@/lib/dashboard-data";
 import { Card3D } from "@/components/ui/Card3D";
@@ -13,32 +13,32 @@ const TEACHERS_DATA = {
     {
       class: "Class 1-2",
       teachers: [
-        { id: 1, name: "Mrs. Priya Sharma", subject: "All Subjects", role: "Class Teacher", experience: "8 years", phone: "+880 1700-001001", email: "priya.sharma@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s1/400/400", specialization: "Early Childhood Education" },
-        { id: 2, name: "Mr. Rahul Gupta", subject: "Mathematics & Science", role: "Subject Teacher", experience: "6 years", phone: "+880 1700-001002", email: "rahul.gupta@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s2/400/400", specialization: "STEM Education" },
+        { id: 1, name: "Mrs. Priya Sharma", subject: "All Subjects", role: "Class Teacher", experience: "8 years", phone: "+880 1700-001001", email: "priya.sharma@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s1/400/400", specialization: "Early Childhood Education", joined: "2016" },
+        { id: 2, name: "Mr. Rahul Gupta", subject: "Mathematics & Science", role: "Subject Teacher", experience: "6 years", phone: "+880 1700-001002", email: "rahul.gupta@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s2/400/400", specialization: "STEM Education", joined: "2018" },
       ]
     },
     {
       class: "Class 3-4",
       teachers: [
-        { id: 3, name: "Sarah Jenkins", subject: "English & Literature", role: "Class Coordinator", experience: "10 years", phone: "+880 1700-001003", email: "sarah.jenkins@sm.edu.bd", image: "https://picsum.photos/seed/teacher1/400/400", specialization: "Language Development" },
-        { id: 4, name: "David Rahman", subject: "Mathematics", role: "Head of Mathematics", experience: "12 years", phone: "+880 1700-001004", email: "david.rahman@sm.edu.bd", image: "https://picsum.photos/seed/teacher2/400/400", specialization: "Problem Solving Techniques" },
-        { id: 5, name: "Fatima Begum", subject: "Science", role: "Science Teacher", experience: "7 years", phone: "+880 1700-001005", email: "fatima.begum@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s3/400/400", specialization: "Experimental Science" },
+        { id: 3, name: "Sarah Jenkins", subject: "English & Literature", role: "Class Coordinator", experience: "10 years", phone: "+880 1700-001003", email: "sarah.jenkins@sm.edu.bd", image: "https://picsum.photos/seed/teacher1/400/400", specialization: "Language Development", joined: "2014" },
+        { id: 4, name: "David Rahman", subject: "Mathematics", role: "Head of Mathematics", experience: "12 years", phone: "+880 1700-001004", email: "david.rahman@sm.edu.bd", image: "https://picsum.photos/seed/teacher2/400/400", specialization: "Problem Solving Techniques", joined: "2012" },
+        { id: 5, name: "Fatima Begum", subject: "Science", role: "Science Teacher", experience: "7 years", phone: "+880 1700-001005", email: "fatima.begum@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s3/400/400", specialization: "Experimental Science", joined: "2017" },
       ]
     },
     {
       class: "Class 5-6",
       teachers: [
-        { id: 6, name: "Ayesha Siddiqua", subject: "English Literature", role: "Class Coordinator", experience: "9 years", phone: "+880 1700-001006", email: "ayesha.siddiqua@sm.edu.bd", image: "https://picsum.photos/seed/teacher3/400/400", specialization: "Creative Writing" },
-        { id: 7, name: "Mohammad Hasan", subject: "Mathematics", role: "Senior Teacher", experience: "11 years", phone: "+880 1700-001007", email: "mohammad.hasan@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s4/400/400", specialization: "Algebra & Geometry" },
-        { id: 8, name: "Karim Ahmed", subject: "Science", role: "Lab In-charge", experience: "8 years", phone: "+880 1700-001008", email: "karim.ahmed@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s5/400/400", specialization: "Physics & Chemistry" },
+        { id: 6, name: "Ayesha Siddiqua", subject: "English Literature", role: "Class Coordinator", experience: "9 years", phone: "+880 1700-001006", email: "ayesha.siddiqua@sm.edu.bd", image: "https://picsum.photos/seed/teacher3/400/400", specialization: "Creative Writing", joined: "2015" },
+        { id: 7, name: "Mohammad Hasan", subject: "Mathematics", role: "Senior Teacher", experience: "11 years", phone: "+880 1700-001007", email: "mohammad.hasan@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s4/400/400", specialization: "Algebra & Geometry", joined: "2013" },
+        { id: 8, name: "Karim Ahmed", subject: "Science", role: "Lab In-charge", experience: "8 years", phone: "+880 1700-001008", email: "karim.ahmed@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s5/400/400", specialization: "Physics & Chemistry", joined: "2016" },
       ]
     },
     {
       class: "Class 7-8",
       teachers: [
-        { id: 9, name: "Michael Chang", subject: "Computer Science", role: "Tech Educator", experience: "7 years", phone: "+880 1700-001009", email: "michael.chang@sm.edu.bd", image: "https://picsum.photos/seed/teacher4/400/400", specialization: "Coding & Programming" },
-        { id: 10, name: "Dr. Nasrin Islam", subject: "Science", role: "Head of Science Dept.", experience: "13 years", phone: "+880 1700-001010", email: "nasrin.islam@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s6/400/400", specialization: "Physics, Chemistry, Biology" },
-        { id: 11, name: "Iqbal Khan", subject: "Social Studies", role: "History Teacher", experience: "9 years", phone: "+880 1700-001011", email: "iqbal.khan@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s7/400/400", specialization: "World History & Geography" },
+        { id: 9, name: "Michael Chang", subject: "Computer Science", role: "Tech Educator", experience: "7 years", phone: "+880 1700-001009", email: "michael.chang@sm.edu.bd", image: "https://picsum.photos/seed/teacher4/400/400", specialization: "Coding & Programming", joined: "2017" },
+        { id: 10, name: "Dr. Nasrin Islam", subject: "Science", role: "Head of Science Dept.", experience: "13 years", phone: "+880 1700-001010", email: "nasrin.islam@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s6/400/400", specialization: "Physics, Chemistry, Biology", joined: "2011" },
+        { id: 11, name: "Iqbal Khan", subject: "Social Studies", role: "History Teacher", experience: "9 years", phone: "+880 1700-001011", email: "iqbal.khan@sm.edu.bd", image: "https://picsum.photos/seed/teacher_s7/400/400", specialization: "World History & Geography", joined: "2015" },
       ]
     },
   ],
@@ -46,22 +46,22 @@ const TEACHERS_DATA = {
     {
       section: "Mathematics Coaching",
       teachers: [
-        { id: 12, name: "Dr. Anisur Rahman", subject: "Higher Math & Physics", role: "Lead Instructor", experience: "15 years", phone: "+880 1700-002001", email: "anisur.rahman@sm.edu.bd", image: "https://picsum.photos/seed/teacher5/400/400", specialization: "Advanced Mathematics & IIT Prep" },
-        { id: 13, name: "Prof. Nasser Uddin", subject: "Mathematics", role: "Senior Coach", experience: "14 years", phone: "+880 1700-002002", email: "nasser.uddin@sm.edu.bd", image: "https://picsum.photos/seed/teacher_a1/400/400", specialization: "Calculus & Algebra" },
+        { id: 12, name: "Dr. Anisur Rahman", subject: "Higher Math & Physics", role: "Lead Instructor", experience: "15 years", phone: "+880 1700-002001", email: "anisur.rahman@sm.edu.bd", image: "https://picsum.photos/seed/teacher5/400/400", specialization: "Advanced Mathematics & IIT Prep", joined: "2009" },
+        { id: 13, name: "Prof. Nasser Uddin", subject: "Mathematics", role: "Senior Coach", experience: "14 years", phone: "+880 1700-002002", email: "nasser.uddin@sm.edu.bd", image: "https://picsum.photos/seed/teacher_a1/400/400", specialization: "Calculus & Algebra", joined: "2010" },
       ]
     },
     {
       section: "Science Coaching",
       teachers: [
-        { id: 14, name: "Nadia Islam", subject: "Chemistry", role: "Senior Coach", experience: "11 years", phone: "+880 1700-002003", email: "nadia.islam@sm.edu.bd", image: "https://picsum.photos/seed/teacher6/400/400", specialization: "Organic & Inorganic Chemistry" },
-        { id: 15, name: "Kamrul Hasan", subject: "Biology", role: "Medical Prep Guide", experience: "10 years", phone: "+880 1700-002004", email: "kamrul.hasan@sm.edu.bd", image: "https://picsum.photos/seed/teacher7/400/400", specialization: "Medical Science Preparation" },
-        { id: 16, name: "Farhana Ahmed", subject: "Physics", role: "Engineering Prep Guide", experience: "9 years", phone: "+880 1700-002005", email: "farhana.ahmed@sm.edu.bd", image: "https://picsum.photos/seed/teacher8/400/400", specialization: "Engineering Physics" },
+        { id: 14, name: "Nadia Islam", subject: "Chemistry", role: "Senior Coach", experience: "11 years", phone: "+880 1700-002003", email: "nadia.islam@sm.edu.bd", image: "https://picsum.photos/seed/teacher6/400/400", specialization: "Organic & Inorganic Chemistry", joined: "2013" },
+        { id: 15, name: "Kamrul Hasan", subject: "Biology", role: "Medical Prep Guide", experience: "10 years", phone: "+880 1700-002004", email: "kamrul.hasan@sm.edu.bd", image: "https://picsum.photos/seed/teacher7/400/400", specialization: "Medical Science Preparation", joined: "2014" },
+        { id: 16, name: "Farhana Ahmed", subject: "Physics", role: "Engineering Prep Guide", experience: "9 years", phone: "+880 1700-002005", email: "farhana.ahmed@sm.edu.bd", image: "https://picsum.photos/seed/teacher8/400/400", specialization: "Engineering Physics", joined: "2015" },
       ]
     },
     {
       section: "English Coaching",
       teachers: [
-        { id: 17, name: "Mrs. Amina Hossain", subject: "English", role: "English Coach", experience: "10 years", phone: "+880 1700-002006", email: "amina.hossain@sm.edu.bd", image: "https://picsum.photos/seed/teacher_a2/400/400", specialization: "English Grammar & Literature" },
+        { id: 17, name: "Mrs. Amina Hossain", subject: "English", role: "English Coach", experience: "10 years", phone: "+880 1700-002006", email: "amina.hossain@sm.edu.bd", image: "https://picsum.photos/seed/teacher_a2/400/400", specialization: "English Grammar & Literature", joined: "2014" },
       ]
     },
   ]
@@ -121,6 +121,12 @@ function TeacherCard({ teacher }: { teacher: any }) {
                 <Award className="w-4 h-4" />
               </div>
               <span className="text-sm font-medium">{teacher.specialization}</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-600">
+              <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
+                <Calendar className="w-4 h-4" />
+              </div>
+              <span className="text-sm font-medium italic">In service since {teacher.joined || "N/A"}</span>
             </div>
           </div>
 
@@ -184,11 +190,12 @@ export default function TeachersPage() {
   const pageOpacity = useTransform(scrollYProgress, [0, 0.1, 0.9, 1], [0.8, 1, 1, 0.8]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] pt-32 pb-24 overflow-hidden relative">
+    <div className="min-h-screen bg-[#f8fafc] pt-40 pb-24 overflow-hidden relative">
       {/* Background Mesh Gradients */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px]" />
       </div>
 
       <motion.div 
@@ -198,19 +205,25 @@ export default function TeachersPage() {
       >
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16 relative"
+          className="text-center mb-24 relative"
         >
-          <div className="inline-flex items-center rounded-full border border-indigo-400/30 bg-indigo-500/10 backdrop-blur-sm px-5 py-2 text-sm font-bold text-indigo-600 mb-6 shadow-lg shadow-indigo-500/5 mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="inline-flex items-center rounded-full border border-indigo-400/30 bg-indigo-500/10 backdrop-blur-md px-6 py-2.5 text-[10px] font-black text-indigo-600 mb-8 shadow-xl shadow-indigo-500/5 mx-auto uppercase tracking-[0.2em]"
+          >
             <Sparkles className="mr-2 h-4 w-4 text-indigo-500" />
-            Our World-Class Educators
-          </div>
-          <h1 className="text-5xl md:text-7xl font-bold font-display text-slate-900 mb-6 tracking-tight">
-            Our Faculty & <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600">Coaches</span>
+            World-Class Educators
+          </motion.div>
+          <h1 className="text-6xl md:text-8xl font-black font-display text-slate-900 mb-8 tracking-tighter leading-[0.9]">
+            Our Faculty & <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 bg-[length:200%_auto] animate-gradient-x">Coaching Staff</span>
           </h1>
-          <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            Meet our team of experienced educators and expert coaches dedicated to shaping the future leaders and achievers.
+          <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium">
+            Discover the visionary minds and expert coaches dedicated to architecting the next generation of scientific leaders.
           </p>
         </motion.div>
 

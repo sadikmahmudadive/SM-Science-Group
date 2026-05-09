@@ -37,6 +37,7 @@ export interface PublicTeacherProfile {
   email: string;
   image: string;
   specialization: string;
+  joined: string; // e.g., "2018"
   category: 'school' | 'academy';
   section: string; // e.g., "Class 1-2" or "Mathematics Coaching"
 }

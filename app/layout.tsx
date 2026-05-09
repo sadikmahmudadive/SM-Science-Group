@@ -11,12 +11,17 @@ export const metadata: Metadata = {
   description: 'SM Science Group: SM Scholars, SM Science Academy, and SM-Annex portal.',
 };
 
+import { SpeedInsights } from "@vercel/speed-insights/next";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} scroll-smooth`} suppressHydrationWarning>
       <head></head>
       <body className="font-sans" suppressHydrationWarning>
-        <ClientLayout>{children}</ClientLayout>
+        <ClientLayout>
+          {children}
+          <SpeedInsights />
+        </ClientLayout>
       </body>
     </html>
   );

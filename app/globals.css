@@ -63,3 +63,30 @@
   --color-amber-800: color-mix(in srgb, #d62044 60%, black);
   --color-amber-900: color-mix(in srgb, #d62044 40%, black);
 }
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 5s ease infinite;
+}
+
+.text-glow {
+  text-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply antialiased text-slate-900 bg-slate-50;
+  }
+}
