@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, orderBy, limit, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, limit, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { getDb } from './firebase';
 
 export interface ClassData {
@@ -25,6 +25,23 @@ export interface Submission {
   studentName: string;
   assignmentTitle: string;
   submittedAt: any;
+}
+
+export type AttendanceStatus = 'present' | 'absent' | 'late';
+
+export interface AttendanceRecord {
+  id?: string;
+  classId: string;
+  classCode: string;
+  date: string; // ISO date string YYYY-MM-DD
+  teacherId: string;
+  students: {
+    studentId: string;
+    studentName: string;
+    status: AttendanceStatus;
+  }[];
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 export interface PublicTeacherProfile {
@@ -160,5 +177,70 @@ export async function deletePublicTeacher(id: string): Promise<void> {
   const db = getDb();
   if (!db) throw new Error('Firebase not configured');
   await deleteDoc(doc(db, 'publicTeachers', id));
+}
+
+// --- ATTENDANCE SYSTEM ---
+
+export async function getStudentsByClassCode(classCode: string): Promise<any[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const q = query(collection(db, 'users'), where('role', '==', 'student'), where('classCode', '==', classCode));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+export async function submitAttendance(record: AttendanceRecord): Promise<string> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  
+  // Check if attendance already exists for this class and date
+  const q = query(
+    collection(db, 'attendance'), 
+    where('classId', '==', record.classId), 
+    where('date', '==', record.date)
+  );
+  const snap = await getDocs(q);
+  
+  const { id, ...data } = record;
+
+  if (!snap.empty) {
+    // Update existing record
+    const docId = snap.docs[0].id;
+    await updateDoc(doc(db, 'attendance', docId), {
+      ...data,
+      updatedAt: serverTimestamp()
+    } as any);
+    return docId;
+  } else {
+    // Create new record
+    const docRef = await addDoc(collection(db, 'attendance'), {
+      ...data,
+      createdAt: serverTimestamp()
+    });
+    return docRef.id;
+  }
+}
+
+export async function getAttendanceByDate(classId: string, date: string): Promise<AttendanceRecord | null> {
+  const db = getDb();
+  if (!db) return null;
+  try {
+    const q = query(
+      collection(db, 'attendance'), 
+      where('classId', '==', classId), 
+      where('date', '==', date)
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) return null;
+    return { id: snap.docs[0].id, ...snap.docs[0].data() } as AttendanceRecord;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { BookOpen, Users, ClipboardCheck, Layout, MessageSquare, Plus, Loader2 } from "lucide-react";
+import { BookOpen, Users, ClipboardCheck, Layout, MessageSquare, Plus, Loader2, Calendar } from "lucide-react";
 import { Card3D } from "@/components/ui/Card3D";
 import { UserProfile } from "@/lib/users";
 import { useState, useEffect } from "react";
@@ -120,6 +120,12 @@ export function TeacherDashboard({ profile }: { profile: UserProfile }) {
                         <Users className="w-4 h-4" />
                         <span className="text-xs font-bold uppercase tracking-widest">{cls.studentCount} Registered</span>
                       </div>
+                    </div>
+                    <div className="mt-6">
+                        <a href={`/annex/dashboard/attendance?classId=${cls.id}&classCode=${cls.classCode}`} className="flex items-center justify-center gap-2 w-full py-3 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
+                            <Calendar className="w-3.5 h-3.5" />
+                            Mark Attendance
+                        </a>
                     </div>
                   </div>
                 </Card3D>
