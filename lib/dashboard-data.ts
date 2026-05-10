@@ -533,3 +533,35 @@ export async function getAttendanceByDate(classId: string, date: string): Promis
   }
 }
 
+export async function getStudentAttendanceSummary(studentId: string, classCode: string): Promise<{ percentage: number, presentCount: number, totalCount: number }> {
+  const db = getDb();
+  if (!db) return { percentage: 0, presentCount: 0, totalCount: 0 };
+  try {
+    // Fetch all attendance records for this class
+    const q = query(collection(db, 'attendance'), where('classCode', '==', classCode));
+    const snap = await getDocs(q);
+    
+    let presentCount = 0;
+    let totalCount = 0;
+
+    snap.docs.forEach(d => {
+      const data = d.data() as AttendanceRecord;
+      const studentStatus = data.students.find(s => s.studentId === studentId);
+      if (studentStatus) {
+        totalCount++;
+        if (studentStatus.status === 'present') {
+          presentCount++;
+        }
+      }
+    });
+
+    return {
+      percentage: totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0,
+      presentCount,
+      totalCount
+    };
+  } catch (e) {
+    console.error(e);
+    return { percentage: 0, presentCount: 0, totalCount: 0 };
+  }
+}

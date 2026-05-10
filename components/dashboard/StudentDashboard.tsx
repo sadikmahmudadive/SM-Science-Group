@@ -5,24 +5,34 @@ import { BookOpen, GraduationCap, Calendar, FileText, Star, Clock, Loader2 } fro
 import { Card3D } from "@/components/ui/Card3D";
 import { UserProfile } from "@/lib/users";
 import { useState, useEffect } from "react";
-import { getStudentClasses, getStudentAssignments, ClassData, Assignment } from "@/lib/dashboard-data";
+import { 
+  getStudentClasses, getStudentAssignments, ClassData, Assignment,
+  getStudentAttendanceSummary, getGradesByStudent, Grade
+} from "@/lib/dashboard-data";
 
 export function StudentDashboard({ profile }: { profile: UserProfile }) {
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [attendance, setAttendance] = useState({ percentage: 0, presentCount: 0, totalCount: 0 });
+  const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
-      const classCode = (profile as any).classCode || "00"; 
+      if (!profile.uid) return;
+      const classCode = (profile as any).classCode || ""; 
 
       try {
-        const [classesData, assignmentsData] = await Promise.all([
-          getStudentClasses(classCode),
-          getStudentAssignments(classCode)
+        const [classesData, assignmentsData, attendanceData, gradesData] = await Promise.all([
+          classCode ? getStudentClasses(classCode) : Promise.resolve([]),
+          classCode ? getStudentAssignments(classCode) : Promise.resolve([]),
+          classCode ? getStudentAttendanceSummary(profile.uid, classCode) : Promise.resolve({ percentage: 0, presentCount: 0, totalCount: 0 }),
+          getGradesByStudent(profile.uid)
         ]);
         setClasses(classesData);
         setAssignments(assignmentsData);
+        setAttendance(attendanceData);
+        setGrades(gradesData);
       } catch (err) {
         console.error("Failed to load student dashboard data:", err);
       } finally {
@@ -43,10 +53,15 @@ export function StudentDashboard({ profile }: { profile: UserProfile }) {
     );
   }
 
+  // Calculate GPA
+  const totalGpa = grades.length > 0 
+    ? (grades.reduce((acc, g) => acc + (g.obtainedMarks / g.totalMarks) * 4, 0) / grades.length).toFixed(2)
+    : "0.00";
+
   const STUDENT_STATS = [
-    { label: "Overall GPA", value: "TBD", icon: Star, color: "indigo" },
-    { label: "Attendance", value: "N/A", icon: Calendar, color: "emerald" },
-    { label: "Assignments", value: assignments.length.toString() || "0 Due", icon: FileText, color: "amber" },
+    { label: "GPA Score", value: totalGpa, icon: Star, color: "indigo" },
+    { label: "Attendance", value: `${attendance.percentage}%`, icon: Calendar, color: "emerald" },
+    { label: "Assignments", value: assignments.length.toString(), icon: FileText, color: "amber" },
     { label: "Courses", value: classes.length.toString(), icon: BookOpen, color: "blue" },
   ];
 
@@ -118,18 +133,18 @@ export function StudentDashboard({ profile }: { profile: UserProfile }) {
                       </div>
                     </div>
                     <div className="bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
-                      <span className="text-xl font-black text-indigo-600">Pending</span>
+                      <span className="text-xl font-black text-indigo-600">{attendance.percentage >= 80 ? 'Good' : attendance.percentage >= 40 ? 'Fair' : 'Low'}</span>
                     </div>
                   </div>
                   <div className="space-y-4 relative z-10">
                     <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                      <span>Course Progress</span>
-                      <span>0% Complete</span>
+                      <span>Attendance Progress</span>
+                      <span>{attendance.percentage}% Complete</span>
                     </div>
                     <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-50 shadow-inner">
                       <motion.div
                         initial={{ width: 0 }}
-                        animate={{ width: "0%" }}
+                        animate={{ width: `${attendance.percentage}%` }}
                         transition={{ duration: 1, delay: 0.5 }}
                         className="h-full bg-indigo-600 rounded-full shadow-lg"
                       />
@@ -141,7 +156,7 @@ export function StudentDashboard({ profile }: { profile: UserProfile }) {
               <div className="p-16 text-center bg-white/50 backdrop-blur-sm rounded-[3rem] border border-white shadow-inner">
                 <BookOpen className="w-16 h-16 text-slate-200 mx-auto mb-4" />
                 <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No Active Enrolments</p>
-                <p className="text-xs text-slate-400 mt-2">Your curriculum will appear here once assigned.</p>
+                <p className="text-xs text-slate-400 mt-2">Please contact administration to assign your class code.</p>
               </div>
             )}
           </div>
@@ -152,7 +167,7 @@ export function StudentDashboard({ profile }: { profile: UserProfile }) {
              <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-100">
                 <FileText className="w-5 h-5" />
               </div>
-              Tasks
+              Recent Tasks
           </h3>
           <div className="bg-white/70 backdrop-blur-md rounded-[3rem] border border-white shadow-xl shadow-slate-200/30 overflow-hidden p-8 space-y-8">
             {assignments.length > 0 ? (
@@ -166,11 +181,10 @@ export function StudentDashboard({ profile }: { profile: UserProfile }) {
                     <h4 className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{task.title}</h4>
                     <div className="flex items-center gap-2 mt-2">
                         <Clock className="w-3 h-3 text-slate-400" />
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Awaiting Submission</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          Due: {task.dueDate?.seconds ? new Date(task.dueDate.seconds * 1000).toLocaleDateString() : 'No date'}
+                        </p>
                     </div>
-                    <span className="inline-block mt-3 text-[9px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase border border-indigo-100">
-                      {task.type || "Academic Task"}
-                    </span>
                   </div>
                 </div>
               ))
@@ -183,11 +197,11 @@ export function StudentDashboard({ profile }: { profile: UserProfile }) {
               </div>
             )}
             
-            {assignments.length > 0 && (
+            <a href="/annex/dashboard/assignments" className="block">
               <button className="w-full py-4 mt-4 rounded-2xl bg-slate-900 text-white font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-slate-800 transition-all hover:scale-[1.02] active:scale-[0.98]">
                 View All Assignments
               </button>
-            )}
+            </a>
           </div>
         </div>
       </div>
