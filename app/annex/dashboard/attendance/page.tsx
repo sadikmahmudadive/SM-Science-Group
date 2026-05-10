@@ -19,6 +19,7 @@ import {
   getStudentsByClassCode, 
   getAllStudents,
   getTeacherClasses,
+  getAllClasses,
   submitAttendance, 
   getAttendanceByDate, 
   AttendanceRecord, 
@@ -50,12 +51,16 @@ export default function AttendancePage() {
   useEffect(() => {
     async function loadTeacherData() {
       if (!user?.uid) return;
-      const [classes, profile] = await Promise.all([
-        getTeacherClasses(user.uid),
-        getUserProfile(user.uid)
-      ]);
-      setTeacherClasses(classes);
+      const profile = await getUserProfile(user.uid);
       setTeacherProfile(profile);
+
+      if (profile?.role === 'admin' || profile?.role === 'super-admin') {
+        const classes = await getAllClasses();
+        setTeacherClasses(classes);
+      } else {
+        const classes = await getTeacherClasses(user.uid);
+        setTeacherClasses(classes);
+      }
     }
     loadTeacherData();
   }, [user?.uid]);
@@ -174,9 +179,9 @@ export default function AttendancePage() {
             <ChevronLeft className="w-6 h-6" />
           </button>
           <div>
-            <h1 className="text-4xl font-black text-slate-900 font-display uppercase tracking-tight leading-none">Attendance Manager</h1>
+            <h1 className="text-4xl font-black text-slate-900 font-display uppercase tracking-tight leading-none">Student Attendance</h1>
             <p className="text-slate-500 font-medium text-sm mt-2 flex items-center gap-2">
-              <span className="text-indigo-600 font-bold">Institutional Registry</span> • Mark attendance for all registered students
+              <span className="text-indigo-600 font-bold">Institutional Registry</span> • Mark and view attendance for all registered students
             </p>
           </div>
         </div>

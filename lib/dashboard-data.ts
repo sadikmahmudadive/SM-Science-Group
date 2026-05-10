@@ -296,6 +296,28 @@ export async function submitTeacherSelfAttendance(record: TeacherSelfAttendanceR
   }
 }
 
+export async function getAllTeacherAttendance(): Promise<TeacherSelfAttendanceRecord[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const q = query(collection(db, 'teacher_attendance'), orderBy('date', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as TeacherSelfAttendanceRecord));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+export async function updateTeacherAttendanceStatus(id: string, status: 'approved' | 'rejected'): Promise<void> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  await updateDoc(doc(db, 'teacher_attendance', id), {
+    status,
+    updatedAt: serverTimestamp()
+  });
+}
+
 
 // --- ATTENDANCE SYSTEM ---
 
