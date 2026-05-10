@@ -12,12 +12,13 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const role = searchParams.get("role") || "";
 
-  // Redirect to role selector if no role specified
+  // Redirect to role selector if no role specified (check actual URL to avoid hydration race)
   useEffect(() => {
-    if (!role) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.get("role")) {
       router.replace("/annex");
     }
-  }, [role, router]);
+  }, [router]);
 
   const { login, loading: authLoading, error: authError, user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -275,7 +276,7 @@ function LoginContent() {
 
                 <div className="mt-8 text-center text-[10px] font-black uppercase tracking-widest">
                   <span className="text-slate-400">Need an account? </span>
-                  <Link href="/annex/register" className="text-indigo-600 hover:text-indigo-500 underline decoration-indigo-200 underline-offset-4">
+                  <Link href={`/annex/register?role=${role}`} className="text-indigo-600 hover:text-indigo-500 underline decoration-indigo-200 underline-offset-4">
                     Register as {role === 'admin' ? 'Administrator' : role}
                   </Link>
                 </div>

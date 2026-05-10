@@ -13,12 +13,13 @@ function RegisterContent() {
   const searchParams = useSearchParams();
   const role = searchParams.get("role") || "";
 
-  // Redirect to role selector if no role specified
+  // Redirect to role selector if no role specified (check actual URL to avoid hydration race)
   useEffect(() => {
-    if (!role) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.get("role")) {
       router.replace("/annex");
     }
-  }, [role, router]);
+  }, [router]);
 
   const { register: authRegister, loading: authLoading, error: authError, user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
