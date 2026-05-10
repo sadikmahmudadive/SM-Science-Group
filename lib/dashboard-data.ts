@@ -165,6 +165,136 @@ export async function deleteClass(id: string): Promise<void> {
   await deleteDoc(doc(db, 'classes', id));
 }
 
+// --- GRADING SYSTEM ---
+
+export interface Exam {
+  id: string;
+  title: string;
+  classId: string;
+  classCode: string;
+  className: string;
+  teacherId: string;
+  teacherName: string;
+  type: 'quiz' | 'midterm' | 'final' | 'assignment' | 'classwork';
+  totalMarks: number;
+  date: string; // YYYY-MM-DD
+  createdAt?: any;
+}
+
+export interface Grade {
+  id: string;
+  examId: string;
+  studentId: string;
+  studentName: string;
+  obtainedMarks: number;
+  totalMarks: number;
+  remarks?: string;
+}
+
+export async function createExam(data: Omit<Exam, 'id'>): Promise<string> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  const docRef = await addDoc(collection(db, 'exams'), {
+    ...data,
+    createdAt: serverTimestamp()
+  });
+  return docRef.id;
+}
+
+export async function getExamsByClass(classId: string): Promise<Exam[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const q = query(collection(db, 'exams'), where('classId', '==', classId), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as Exam));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+export async function getExamsByTeacher(teacherId: string): Promise<Exam[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const q = query(collection(db, 'exams'), where('teacherId', '==', teacherId), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as Exam));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+export async function getAllExams(): Promise<Exam[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const q = query(collection(db, 'exams'), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as Exam));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+export async function deleteExam(id: string): Promise<void> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  // Delete all grades for this exam too
+  const q = query(collection(db, 'grades'), where('examId', '==', id));
+  const snap = await getDocs(q);
+  for (const d of snap.docs) {
+    await deleteDoc(doc(db, 'grades', d.id));
+  }
+  await deleteDoc(doc(db, 'exams', id));
+}
+
+export async function submitGrades(examId: string, grades: Omit<Grade, 'id'>[]): Promise<void> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  
+  // Delete existing grades for this exam first
+  const q = query(collection(db, 'grades'), where('examId', '==', examId));
+  const snap = await getDocs(q);
+  for (const d of snap.docs) {
+    await deleteDoc(doc(db, 'grades', d.id));
+  }
+  
+  // Insert new grades
+  for (const grade of grades) {
+    await addDoc(collection(db, 'grades'), grade);
+  }
+}
+
+export async function getGradesByExam(examId: string): Promise<Grade[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const q = query(collection(db, 'grades'), where('examId', '==', examId));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as Grade));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+export async function getGradesByStudent(studentId: string): Promise<Grade[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const q = query(collection(db, 'grades'), where('studentId', '==', studentId));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as Grade));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
 // --- PUBLIC STAFF PROFILES ---
 
 export async function getPublicTeachers(): Promise<PublicTeacherProfile[]> {

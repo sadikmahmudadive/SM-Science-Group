@@ -153,6 +153,8 @@ export default function AttendancePage() {
     late: Object.values(attendance).filter(s => s === 'late').length,
   };
 
+  const isAdmin = teacherProfile?.role === 'admin' || teacherProfile?.role === 'super-admin';
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -181,8 +183,13 @@ export default function AttendancePage() {
           <div>
             <h1 className="text-4xl font-black text-slate-900 font-display uppercase tracking-tight leading-none">Student Attendance</h1>
             <p className="text-slate-500 font-medium text-sm mt-2 flex items-center gap-2">
-              <span className="text-indigo-600 font-bold">Institutional Registry</span> • Mark and view attendance for all registered students
+              <span className="text-indigo-600 font-bold">Institutional Registry</span> • {isAdmin ? 'View attendance records (read-only)' : 'Mark attendance for your students'}
             </p>
+            {isAdmin && (
+              <span className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest border border-amber-200">
+                View Only
+              </span>
+            )}
           </div>
         </div>
         
@@ -220,14 +227,16 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          <button 
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-3 bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-200 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save Daily Record
-          </button>
+          {!isAdmin && (
+            <button 
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-3 bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-200 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Daily Record
+            </button>
+          )}
         </div>
       </div>
 
@@ -323,26 +332,37 @@ export default function AttendancePage() {
                         </div>
                       </td>
                       <td className="px-8 py-6 text-center">
-                        <div className="inline-flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100 shadow-inner">
-                          <button 
-                            onClick={() => handleStatusChange(student.uid, 'present')}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${attendance[student.uid] === 'present' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200 scale-105' : 'text-slate-400 hover:text-slate-600'}`}
-                          >
-                            Present
-                          </button>
-                          <button 
-                            onClick={() => handleStatusChange(student.uid, 'absent')}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${attendance[student.uid] === 'absent' ? 'bg-red-500 text-white shadow-lg shadow-red-200 scale-105' : 'text-slate-400 hover:text-slate-600'}`}
-                          >
-                            Absent
-                          </button>
-                          <button 
-                            onClick={() => handleStatusChange(student.uid, 'late')}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${attendance[student.uid] === 'late' ? 'bg-amber-500 text-white shadow-lg shadow-amber-200 scale-105' : 'text-slate-400 hover:text-slate-600'}`}
-                          >
-                            Late
-                          </button>
-                        </div>
+                        {isAdmin ? (
+                          <span className={`inline-flex px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${
+                            attendance[student.uid] === 'present' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' :
+                            attendance[student.uid] === 'absent' ? 'bg-red-50 text-red-600 border border-red-200' :
+                            attendance[student.uid] === 'late' ? 'bg-amber-50 text-amber-600 border border-amber-200' :
+                            'bg-slate-50 text-slate-400 border border-slate-200'
+                          }`}>
+                            {attendance[student.uid] || 'Not Marked'}
+                          </span>
+                        ) : (
+                          <div className="inline-flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100 shadow-inner">
+                            <button 
+                              onClick={() => handleStatusChange(student.uid, 'present')}
+                              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${attendance[student.uid] === 'present' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200 scale-105' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                              Present
+                            </button>
+                            <button 
+                              onClick={() => handleStatusChange(student.uid, 'absent')}
+                              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${attendance[student.uid] === 'absent' ? 'bg-red-500 text-white shadow-lg shadow-red-200 scale-105' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                              Absent
+                            </button>
+                            <button 
+                              onClick={() => handleStatusChange(student.uid, 'late')}
+                              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${attendance[student.uid] === 'late' ? 'bg-amber-500 text-white shadow-lg shadow-amber-200 scale-105' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                              Late
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </motion.tr>
                   ))

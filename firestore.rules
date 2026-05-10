@@ -5,7 +5,9 @@ service cloud.firestore {
     // Helper: Check if the user is an admin
     function isAdmin() {
       return request.auth != null &&
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
     }
 
     // Helper: Check if the user is a teacher
@@ -29,24 +31,17 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Admins have full access
-      // Users can read/update their own profile
-      // Teachers can read student profiles for attendance
-      allow read, write: if isAdmin() 
-                         || (request.auth != null && request.auth.uid == userId)
-                         || (isTeacher() && resource.data.role == 'student')
-                         || true; // TEMPORARY: Maintaining existing override
+      allow read, write: if request.auth != null;
     }
 
     match /announcements/{announcementId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if request.auth != null;
     }
 
     match /notifications/{notificationId} {
-      allow read: if request.auth != null &&
-                  (resource == null || resource.data.userId == request.auth.uid || isAdmin());
-      allow write: if isAdmin();
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
     }
 
     // ==========================================
@@ -54,31 +49,36 @@ service cloud.firestore {
     // ==========================================
 
     match /classes/{classId} {
-      // Anyone logged in can read classes
       allow read: if request.auth != null;
-      // Only admins can create/edit classes
-      allow write: if isAdmin(); 
+      allow write: if request.auth != null;
     }
 
     match /assignments/{assignmentId} {
       allow read: if request.auth != null;
-      // Admins and Teachers can manage assignments
-      allow write: if isAdmin() || isTeacher();
+      allow write: if request.auth != null;
     }
 
     match /submissions/{submissionId} {
       allow read: if request.auth != null;
-      // Students write their own, Teachers/Admins read all
       allow write: if request.auth != null;
     }
 
     match /attendance/{recordId} {
-      // Teachers and Admins can read/write attendance records
-      allow read, write: if request.auth != null && (isAdmin() || isTeacher());
+      allow read, write: if request.auth != null;
     }
 
     match /teacher_attendance/{recordId} {
-      allow read, write: if request.auth != null && (isAdmin() || isTeacher());
+      allow read, write: if request.auth != null;
+    }
+
+    match /exams/{examId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    match /grades/{gradeId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
     }
 
     // ==========================================
@@ -87,12 +87,12 @@ service cloud.firestore {
 
     match /publicTeachers/{teacherId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if request.auth != null;
     }
 
     match /settings/{settingId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if request.auth != null;
     }
   }
 }
