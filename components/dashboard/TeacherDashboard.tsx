@@ -1,16 +1,26 @@
 "use client";
 
-import { motion } from "motion/react";
-import { BookOpen, Users, ClipboardCheck, Layout, MessageSquare, Plus, Loader2, Calendar } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { BookOpen, Users, ClipboardCheck, Layout, MessageSquare, Plus, Loader2, Calendar, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { Card3D } from "@/components/ui/Card3D";
+import { TimeRangePicker } from "@/components/ui/TimeRangePicker";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { UserProfile } from "@/lib/users";
 import { useState, useEffect } from "react";
-import { getTeacherClasses, getTeacherSubmissions, ClassData, Submission } from "@/lib/dashboard-data";
+import { getTeacherClasses, getTeacherSubmissions, ClassData, Submission, submitTeacherSelfAttendance } from "@/lib/dashboard-data";
 
 export function TeacherDashboard({ profile }: { profile: UserProfile }) {
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Self Attendance State
+  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [classesConducted, setClassesConducted] = useState(1);
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("14:00");
+  const [submittingAttendance, setSubmittingAttendance] = useState(false);
+  const [attendanceMessage, setAttendanceMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -41,6 +51,31 @@ export function TeacherDashboard({ profile }: { profile: UserProfile }) {
       </div>
     );
   }
+
+  const handleSelfAttendanceSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile.uid) return;
+    setSubmittingAttendance(true);
+    setAttendanceMessage(null);
+    try {
+      await submitTeacherSelfAttendance({
+        teacherId: profile.uid,
+        teacherName: profile.displayName,
+        date: attendanceDate,
+        classesConducted,
+        startTime,
+        endTime,
+        status: 'pending'
+      });
+      setAttendanceMessage({ type: 'success', text: 'Submitted for validation.' });
+      setTimeout(() => setAttendanceMessage(null), 4000);
+    } catch (error) {
+      console.error(error);
+      setAttendanceMessage({ type: 'error', text: 'Submission failed.' });
+    } finally {
+      setSubmittingAttendance(false);
+    }
+  };
 
   const TEACHER_STATS = [
     { label: "My Classes", value: classes.length.toString(), icon: Layout, color: "blue" },
@@ -141,7 +176,68 @@ export function TeacherDashboard({ profile }: { profile: UserProfile }) {
         </div>
 
         <div className="space-y-8">
+          {/* Teacher Self Attendance */}
           <h3 className="text-2xl font-black text-slate-900 font-display uppercase tracking-tight flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-100">
+                <Clock className="w-5 h-5" />
+              </div>
+              My Attendance
+          </h3>
+          <div className="bg-white/70 backdrop-blur-md rounded-[3rem] border border-white shadow-xl shadow-slate-200/30 overflow-hidden p-8">
+            <form onSubmit={handleSelfAttendanceSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Date</label>
+                <DatePicker 
+                  value={attendanceDate}
+                  onChange={(date) => setAttendanceDate(date)}
+                />
+              </div>
+
+              <div className="pt-2">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Duty Hours (Start - End)</label>
+                <TimeRangePicker 
+                  startTime={startTime}
+                  endTime={endTime}
+                  onChange={(start, end) => { setStartTime(start); setEndTime(end); }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Classes Conducted</label>
+                <input 
+                  type="number" required min="0" max="20"
+                  value={classesConducted} onChange={e => setClassesConducted(parseInt(e.target.value) || 0)}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                />
+              </div>
+
+              <AnimatePresence>
+                {attendanceMessage && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className={`flex items-center gap-2 text-xs font-bold uppercase tracking-widest p-3 rounded-xl ${attendanceMessage.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}
+                  >
+                    {attendanceMessage.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                    {attendanceMessage.text}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <button 
+                type="submit" 
+                disabled={submittingAttendance}
+                className="w-full py-4 mt-2 rounded-2xl bg-emerald-600 text-white font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-200 hover:bg-emerald-700 transition-all hover:scale-[1.02] active:scale-[0.98] flex justify-center items-center gap-2 disabled:opacity-50"
+              >
+                {submittingAttendance ? <Loader2 className="w-4 h-4 animate-spin" /> : <ClipboardCheck className="w-4 h-4" />}
+                Submit Record
+              </button>
+            </form>
+          </div>
+
+          {/* Grading Queue */}
+          <h3 className="text-2xl font-black text-slate-900 font-display uppercase tracking-tight flex items-center gap-3 pt-6">
              <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-100">
                 <ClipboardCheck className="w-5 h-5" />
               </div>

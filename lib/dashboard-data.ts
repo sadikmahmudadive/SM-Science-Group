@@ -251,6 +251,52 @@ export async function deletePublicTeacher(id: string): Promise<void> {
   await deleteDoc(doc(db, 'publicTeachers', id));
 }
 
+// --- TEACHER SELF ATTENDANCE SYSTEM ---
+
+export interface TeacherSelfAttendanceRecord {
+  id?: string;
+  teacherId: string;
+  teacherName: string;
+  date: string;
+  classesConducted: number;
+  startTime: string;
+  endTime: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt?: any;
+}
+
+export async function submitTeacherSelfAttendance(record: TeacherSelfAttendanceRecord): Promise<string> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  
+  // Check if attendance already exists for this teacher and date
+  const q = query(
+    collection(db, 'teacher_attendance'), 
+    where('teacherId', '==', record.teacherId), 
+    where('date', '==', record.date)
+  );
+  const snap = await getDocs(q);
+  
+  const { id, ...data } = record;
+  
+  if (!snap.empty) {
+    const docId = snap.docs[0].id;
+    await updateDoc(doc(db, 'teacher_attendance', docId), {
+      ...data,
+      updatedAt: serverTimestamp()
+    });
+    return docId;
+  } else {
+    const docRef = await addDoc(collection(db, 'teacher_attendance'), {
+      ...data,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    return docRef.id;
+  }
+}
+
+
 // --- ATTENDANCE SYSTEM ---
 
 export async function getStudentsByClassCode(classCode: string, personType?: 'S' | 'C'): Promise<any[]> {
