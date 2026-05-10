@@ -11,7 +11,15 @@ import { checkEmailApproval, activateUserProfile } from "@/lib/users";
 function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "admin";
+  const role = searchParams.get("role") || "";
+
+  // Redirect to role selector if no role specified
+  useEffect(() => {
+    if (!role) {
+      router.replace("/annex");
+    }
+  }, [role, router]);
+
   const { register: authRegister, loading: authLoading, error: authError, user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   

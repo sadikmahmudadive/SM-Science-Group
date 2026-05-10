@@ -10,7 +10,15 @@ import { useAuth } from "@/lib/auth-context";
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "admin";
+  const role = searchParams.get("role") || "";
+
+  // Redirect to role selector if no role specified
+  useEffect(() => {
+    if (!role) {
+      router.replace("/annex");
+    }
+  }, [role, router]);
+
   const { login, loading: authLoading, error: authError, user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   
