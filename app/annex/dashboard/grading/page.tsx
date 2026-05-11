@@ -50,6 +50,7 @@ export default function GradingPage() {
   const [savingGrades, setSavingGrades] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
+  const isStaff = profile?.role === 'teacher' || profile?.role === 'admin' || profile?.role === 'super-admin';
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super-admin';
 
   useEffect(() => {
@@ -390,23 +391,23 @@ export default function GradingPage() {
     <div className="max-w-6xl mx-auto space-y-8 pb-20 relative">
       <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-100 rounded-full blur-[150px] opacity-30 -z-10" />
 
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 bg-indigo-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter mb-4 shadow-lg shadow-indigo-200">
-            {isAdmin ? 'Admin Panel' : 'Faculty Panel'}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-indigo-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter mb-4 shadow-lg shadow-indigo-200">
+              {isAdmin ? 'Admin Panel' : 'Faculty Panel'}
+            </div>
+            <h1 className="text-4xl font-black text-slate-900 font-display uppercase tracking-tight leading-none">Grading Center</h1>
+            <p className="text-slate-500 font-medium text-sm mt-2">
+              {isAdmin ? 'View all exams and grades across the institution.' : 'Create exams, assign marks, and track student performance.'}
+            </p>
           </div>
-          <h1 className="text-4xl font-black text-slate-900 font-display uppercase tracking-tight leading-none">Grading Center</h1>
-          <p className="text-slate-500 font-medium text-sm mt-2">
-            {isAdmin ? 'View all exams and grades across the institution.' : 'Create exams, assign marks, and track student performance.'}
-          </p>
+          {isStaff && !isAdmin && (
+            <button onClick={() => setView('create')}
+              className="flex items-center gap-3 bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98]">
+              <Plus className="w-4 h-4" /> New Exam
+            </button>
+          )}
         </div>
-        {!isAdmin && (
-          <button onClick={() => setView('create')}
-            className="flex items-center gap-3 bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98]">
-            <Plus className="w-4 h-4" /> New Exam
-          </button>
-        )}
-      </div>
 
       <div className="relative group">
         <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />

@@ -123,7 +123,7 @@ export async function getStudentAssignments(classCode: string): Promise<Assignme
   const db = getDb();
   if (!db) return [];
   try {
-    const q = query(collection(db, 'assignments'), where('classCode', '==', classCode), orderBy('dueDate', 'asc'), limit(5));
+    const q = query(collection(db, 'assignments'), where('classCode', '==', classCode), orderBy('dueDate', 'asc'));
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...d.data() } as Assignment));
   } catch (e) {
@@ -131,6 +131,55 @@ export async function getStudentAssignments(classCode: string): Promise<Assignme
     return [];
   }
 }
+
+export async function createAssignment(data: Omit<Assignment, 'id'>): Promise<string> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  const docRef = await addDoc(collection(db, 'assignments'), {
+    ...data,
+    createdAt: serverTimestamp()
+  });
+  return docRef.id;
+}
+
+export async function updateAssignment(id: string, data: Partial<Assignment>): Promise<void> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  await updateDoc(doc(db, 'assignments', id), data);
+}
+
+export async function deleteAssignment(id: string): Promise<void> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  await deleteDoc(doc(db, 'assignments', id));
+}
+
+export async function getAllAssignments(): Promise<Assignment[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const q = query(collection(db, 'assignments'), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as Assignment));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+export async function getAssignmentsByTeacher(teacherId: string): Promise<Assignment[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const q = query(collection(db, 'assignments'), where('teacherId', '==', teacherId), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as Assignment));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
 
 // --- ADMIN CLASS MANAGEMENT ---
 
@@ -565,3 +614,49 @@ export async function getStudentAttendanceSummary(studentId: string, classCode: 
     return { percentage: 0, presentCount: 0, totalCount: 0 };
   }
 }
+
+// --- LIBRARY SYSTEM ---
+
+export interface Book {
+  id: string;
+  title: string;
+  author: string;
+  category: string;
+  status: 'available' | 'borrowed' | 'reserved';
+  totalCopies: number;
+  availableCopies: number;
+  location?: string;
+  isbn?: string;
+}
+
+export async function getAllBooks(): Promise<Book[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const snap = await getDocs(collection(db, 'books'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as Book));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+export async function createBook(data: Omit<Book, 'id'>): Promise<string> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  const docRef = await addDoc(collection(db, 'books'), data);
+  return docRef.id;
+}
+
+export async function updateBook(id: string, data: Partial<Book>): Promise<void> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  await updateDoc(doc(db, 'books', id), data);
+}
+
+export async function deleteBook(id: string): Promise<void> {
+  const db = getDb();
+  if (!db) throw new Error('Firebase not configured');
+  await deleteDoc(doc(db, 'books', id));
+}
+

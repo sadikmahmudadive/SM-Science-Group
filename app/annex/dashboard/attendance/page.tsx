@@ -2,33 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
 import { 
-  Users, 
-  Calendar, 
-  ArrowLeft, 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  Save, 
-  Loader2,
-  Search,
-  ChevronLeft
+  ChevronLeft, Users, Calendar, Search, Loader2, 
+  CheckCircle2, XCircle, Save, Filter
 } from "lucide-react";
-import { 
-  getStudentsByClassCode, 
-  getAllStudents,
-  getTeacherClasses,
-  getAllClasses,
-  submitAttendance, 
-  getAttendanceByDate, 
-  AttendanceRecord, 
-  AttendanceStatus,
-  ClassData
-} from "@/lib/dashboard-data";
 import { useAuth } from "@/lib/auth-context";
+import { 
+  getTeacherClasses, getAllClasses, 
+  getStudentsByClassCode, getAttendanceByDate, 
+  saveAttendance, AttendanceStatus, AttendanceRecord,
+  ClassData, getAllStudents
+} from "@/lib/dashboard-data";
 import { getUserProfile, UserProfile } from "@/lib/users";
 import { Card3D } from "@/components/ui/Card3D";
+import { motion, AnimatePresence } from "motion/react";
 
 export default function AttendancePage() {
   const searchParams = useSearchParams();
@@ -66,44 +53,36 @@ export default function AttendancePage() {
   }, [user?.uid]);
 
   useEffect(() => {
-    async function loadData() {
+    async function loadStudents() {
+      if (!selectedClassCode) return;
       setLoading(true);
       try {
         let studentList = [];
-        const personType = (teacherProfile as any)?.personType as 'S' | 'C' | undefined;
-
-        if (selectedClassCode === "global") {
-          studentList = await getAllStudents(personType);
+        if (selectedClassCode === 'global') {
+          studentList = await getAllStudents();
         } else {
-          studentList = await getStudentsByClassCode(selectedClassCode, personType);
+          studentList = await getStudentsByClassCode(selectedClassCode);
         }
-        
-        const existingAttendance = await getAttendanceByDate(selectedClassId || "global", date);
-        
         setStudents(studentList);
+
+        // Load existing attendance for this day
+        const existingRecord = await getAttendanceByDate(selectedClassId || selectedClassCode, date);
+        const attendanceMap: Record<string, AttendanceStatus> = {};
         
-        if (existingAttendance) {
-          const attendanceMap: Record<string, AttendanceStatus> = {};
-          existingAttendance.students.forEach(s => {
+        if (existingRecord) {
+          existingRecord.students.forEach(s => {
             attendanceMap[s.studentId] = s.status;
           });
-          setAttendance(attendanceMap);
-        } else {
-          const defaultMap: Record<string, AttendanceStatus> = {};
-          studentList.forEach(s => {
-            defaultMap[s.uid] = 'present';
-          });
-          setAttendance(defaultMap);
         }
-      } catch (err) {
-        console.error("Failed to load attendance data:", err);
+        setAttendance(attendanceMap);
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
     }
-
-    loadData();
-  }, [selectedClassCode, selectedClassId, date, teacherProfile]);
+    loadStudents();
+  }, [selectedClassCode, selectedClassId, date]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendance(prev => ({
@@ -113,28 +92,31 @@ export default function AttendancePage() {
   };
 
   const handleSave = async () => {
-    if (!user || !selectedClassCode) return;
-    
+    if (!selectedClassCode || selectedClassCode === 'global') {
+      alert("Please select a specific class to save attendance.");
+      return;
+    }
     setSaving(true);
     setMessage(null);
-    
-    const record: AttendanceRecord = {
-      classId: selectedClassId || "global",
-      classCode: selectedClassCode,
-      date,
-      teacherId: user.uid,
-      students: students.map(s => ({
+    try {
+      const records = students.map(s => ({
         studentId: s.uid,
         studentName: s.displayName,
         status: attendance[s.uid] || 'absent'
-      }))
-    };
+      }));
 
-    try {
-      await submitAttendance(record);
-      setMessage({ type: 'success', text: 'Attendance registry updated successfully!' });
+      await saveAttendance({
+        classId: selectedClassId,
+        classCode: selectedClassCode,
+        date: date,
+        teacherId: user?.uid || "",
+        students: records
+      });
+
+      setMessage({ type: 'success', text: 'Attendance saved successfully!' });
       setTimeout(() => setMessage(null), 3000);
-    } catch (err) {
+    } catch (e) {
+      console.error(e);
       setMessage({ type: 'error', text: 'Failed to save attendance. Please verify your connection.' });
     } finally {
       setSaving(false);
@@ -153,6 +135,7 @@ export default function AttendancePage() {
     late: Object.values(attendance).filter(s => s === 'late').length,
   };
 
+  const isStaff = teacherProfile?.role === 'teacher' || teacherProfile?.role === 'admin' || teacherProfile?.role === 'super-admin';
   const isAdmin = teacherProfile?.role === 'admin' || teacherProfile?.role === 'super-admin';
 
   if (loading) {
@@ -168,7 +151,6 @@ export default function AttendancePage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-20 relative">
-      {/* Background Decor */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-100 rounded-full blur-[150px] opacity-30 -z-10" />
 
       {/* Header Section */}
@@ -183,7 +165,7 @@ export default function AttendancePage() {
           <div>
             <h1 className="text-4xl font-black text-slate-900 font-display uppercase tracking-tight leading-none">Student Attendance</h1>
             <p className="text-slate-500 font-medium text-sm mt-2 flex items-center gap-2">
-              <span className="text-indigo-600 font-bold">Institutional Registry</span> • {isAdmin ? 'View attendance records (read-only)' : 'Mark attendance for your students'}
+              <span className="text-indigo-600 font-bold">Institutional Registry</span> • {isStaff ? (isAdmin ? 'View attendance records (read-only)' : 'Mark attendance for your students') : 'Your personal attendance record'}
             </p>
             {isAdmin && (
               <span className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest border border-amber-200">
@@ -194,40 +176,54 @@ export default function AttendancePage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center bg-white p-2 rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40">
-            <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
-                <Users className="w-4 h-4 text-slate-400" />
-                <select 
-                    value={selectedClassCode}
-                    onChange={(e) => {
-                        const code = e.target.value;
-                        setSelectedClassCode(code);
-                        const cls = teacherClasses.find(c => c.classCode === code);
-                        setSelectedClassId(cls ? cls.id : "");
-                    }}
-                    className="bg-transparent text-xs font-black uppercase tracking-widest text-slate-700 outline-none cursor-pointer"
-                >
-                    <option value="global">Global Registry</option>
-                    {teacherClasses.map(c => (
-                        <option key={c.id} value={c.classCode}>{c.name} ({c.classCode})</option>
-                    ))}
-                </select>
+          {isStaff && (
+            <div className="flex items-center bg-white p-2 rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40">
+              <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
+                  <Users className="w-4 h-4 text-slate-400" />
+                  <select 
+                      value={selectedClassCode}
+                      onChange={(e) => {
+                          const code = e.target.value;
+                          setSelectedClassCode(code);
+                          const cls = teacherClasses.find(c => c.classCode === code);
+                          setSelectedClassId(cls ? cls.id : "");
+                      }}
+                      className="bg-transparent text-xs font-black uppercase tracking-widest text-slate-700 outline-none cursor-pointer"
+                  >
+                      <option value="global">Global Registry</option>
+                      {teacherClasses.map(c => (
+                          <option key={c.id} value={c.classCode}>{c.name} ({c.classCode})</option>
+                      ))}
+                  </select>
+              </div>
+
+              <div className="h-10 w-px bg-slate-100 mx-2" />
+
+              <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
+                  <Calendar className="w-4 h-4 text-slate-400" />
+                  <input 
+                      type="date" 
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="bg-transparent text-xs font-black uppercase tracking-widest text-slate-700 outline-none cursor-pointer"
+                  />
+              </div>
             </div>
+          )}
 
-            <div className="h-10 w-px bg-slate-100 mx-2" />
-
-            <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
-                <Calendar className="w-4 h-4 text-slate-400" />
+          {!isStaff && (
+            <div className="flex items-center gap-2 px-6 py-4 bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/30">
+                <Calendar className="w-5 h-5 text-indigo-600" />
                 <input 
                     type="date" 
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="bg-transparent text-xs font-black uppercase tracking-widest text-slate-700 outline-none cursor-pointer"
+                    className="bg-transparent text-sm font-black uppercase tracking-widest text-slate-700 outline-none cursor-pointer"
                 />
             </div>
-          </div>
+          )}
 
-          {!isAdmin && (
+          {isStaff && !isAdmin && (
             <button 
               onClick={handleSave}
               disabled={saving}
@@ -245,7 +241,7 @@ export default function AttendancePage() {
         <Card3D className="bg-white/80 backdrop-blur-md p-6 border border-white shadow-xl shadow-slate-200/30 lg:col-span-1 rounded-[2rem]">
           <div className="space-y-6">
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Daily Statistics</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{isStaff ? 'Daily Statistics' : 'Your Attendance'}</p>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -271,24 +267,28 @@ export default function AttendancePage() {
               </div>
             </div>
             
-            <div className="pt-6 border-t border-slate-100">
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Total Students</p>
-               <p className="text-2xl font-black text-slate-900">{students.length}</p>
-            </div>
+            {isStaff && (
+              <div className="pt-6 border-t border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Total Students</p>
+                <p className="text-2xl font-black text-slate-900">{students.length}</p>
+              </div>
+            )}
           </div>
         </Card3D>
 
         <div className="lg:col-span-3 space-y-6">
-          <div className="relative group">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Search students by name or email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-14 pr-6 py-5 bg-white border border-slate-100 rounded-[2rem] text-sm font-medium focus:ring-4 focus:ring-indigo-50/50 focus:border-indigo-600 transition-all shadow-xl shadow-slate-200/20 outline-none"
-            />
-          </div>
+          {isStaff && (
+            <div className="relative group">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+              <input 
+                type="text" 
+                placeholder="Search students by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-14 pr-6 py-5 bg-white border border-slate-100 rounded-[2rem] text-sm font-medium focus:ring-4 focus:ring-indigo-50/50 focus:border-indigo-600 transition-all shadow-xl shadow-slate-200/20 outline-none"
+              />
+            </div>
+          )}
 
           <AnimatePresence>
             {message && (
@@ -314,7 +314,7 @@ export default function AttendancePage() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {filteredStudents.length > 0 ? (
-                  filteredStudents.map((student) => (
+                  (isStaff ? filteredStudents : filteredStudents.filter(s => s.uid === user?.uid)).map((student) => (
                     <motion.tr 
                       layout
                       key={student.uid}
@@ -332,8 +332,8 @@ export default function AttendancePage() {
                         </div>
                       </td>
                       <td className="px-8 py-6 text-center">
-                        {isAdmin ? (
-                          <span className={`inline-flex px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${
+                        {isAdmin || !isStaff ? (
+                          <span className={`inline-flex px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
                             attendance[student.uid] === 'present' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' :
                             attendance[student.uid] === 'absent' ? 'bg-red-50 text-red-600 border border-red-200' :
                             attendance[student.uid] === 'late' ? 'bg-amber-50 text-amber-600 border border-amber-200' :
